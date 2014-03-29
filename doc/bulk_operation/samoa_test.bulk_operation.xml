@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<database name="samoa_test" schema="bulk_operation" type="PostgreSQL - 9.2.3">
+   <tables>
+      <table name="Function: clean_after_rollback" remarks="Runs clean up tasks after the transaction of bulk operation is rolled back." schema="bulk_operation" type="TABLE"/>
+      <table name="Function: move_cadastre_objects" remarks="Moves cadastre objects from the Bulk Operation schema to the Cadastre schema." schema="bulk_operation" type="TABLE"/>
+      <table name="Function: move_other_objects" remarks="Moves general spatial objects other than cadastre objects from the Bulk Operation schema to the Cadastre schema. If an appropriate level and/or structure type do not exist in the Cadastre schema, this function will add them." schema="bulk_operation" type="TABLE"/>
+      <table name="Function: move_spatial_units" remarks="Moves all spatial data from teh Bulk Operation schema to the Cadastre schema using the move_cadastre_objects and move_other_objects functions. This function is called after the bulk opearation transaction is created by the Bulk Operation application." schema="bulk_operation" type="TABLE"/>
+   </tables>
+</database>
