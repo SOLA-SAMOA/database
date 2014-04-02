@@ -44,8 +44,6 @@ new database changes are;
     change that is being made. This will allocate a ticket number.
 2)  Create and run your new changeset script against your local 
     development database to apply the change. 
-	- The changeset script must be named using the Changeset 
-      Naming Convention described below. 
 	- Any new objects added to the database (e.g. tables, columns, 
       views, functions, etc) must include suitable database 
       comments to describe them. 
@@ -64,15 +62,3 @@ files. The changeset scripts become important when it is necessary
 to upgrade an existing production databases. In this case the DBA will 
 need to determine the changeset scripts to apply to upgrade their database 
 with new features. 
-
-> Changeset Naming Convention
-
-Scripts should be named as <year><month><sequence char>_<Lighthouse ticket 
-number>. The date fields will be based around the date the Lighthouse ticket
-is initially fixed. E.g. If Lighthouse ticket 298 is fixed on the 12th Feb 
-2014, the changeset script name is 1402a_298.sql. The next script created 
-in Feb would be 1402b_<ticket number>, etc. 
-
-The version number part of the script name is the date and sequence char 
-(e.g. 1402a). The version number must be added to the system.version 
-table when the changeset script executes. 
