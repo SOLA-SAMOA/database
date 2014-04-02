@@ -222,6 +222,9 @@ INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversi
 INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('ChangePassword', '80', '633eecec-b530-11e3-80f6-13bd987559a8', 1, 'i', 'db:postgres', '2014-03-27 11:48:37.391');
 INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('ChangePassword', '5654ca9a-595d-4a25-9809-0899dcb93673', '633eecec-b530-11e3-ac95-ff2a42fe1278', 1, 'i', 'db:postgres', '2014-03-27 11:48:37.391');
 INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('ChangePassword', 'cbca8c4f-635c-4144-91af-726cba414f5f', '633eecec-b530-11e3-b543-2bc37af720fe', 1, 'i', 'db:postgres', '2014-03-27 11:48:37.391');
+INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('MeasureTool', '80', 'bf714a0e-b9ff-11e3-8877-1777a5282621', 1, 'i', 'db:postgres', '2014-04-02 13:43:03.084');
+INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('MeasureTool', '70', 'bf72346e-b9ff-11e3-9e1c-af739e042ea5', 1, 'i', 'db:postgres', '2014-04-02 13:43:03.084');
+INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('lapseCaveat', '60', 'a3964d46-ba0b-11e3-bf9b-8b159f9d8226', 1, 'i', 'db:postgres', '2014-04-02 15:08:10.316');
 
 
 ALTER TABLE approle_appgroup ENABLE TRIGGER ALL;

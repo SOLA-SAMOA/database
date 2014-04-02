@@ -716,6 +716,8 @@ INSERT INTO approle (code, display_value, status, description) VALUES ('surveyPl
 INSERT INTO approle (code, display_value, status, description) VALUES ('titleSearch', 'Title Search', 'c', 'Allows to make title search');
 INSERT INTO approle (code, display_value, status, description) VALUES ('varyMortgage', 'Vary Mortgage', 'c', 'Allows to make changes for registration of a variation to a mortgage');
 INSERT INTO approle (code, display_value, status, description) VALUES ('varyRight', 'Vary Right or Restriction', 'c', 'Allows to make changes for registration of a variation to a right or restriction');
+INSERT INTO approle (code, display_value, status, description) VALUES ('MeasureTool', 'Measure Tool', 'c', 'Allows user to measure a distance on the map.');
+INSERT INTO approle (code, display_value, status, description) VALUES ('lapseCaveat', 'Lapse Caveat', 'c', 'Used for processing Lapse Caveat services.');
 
 
 ALTER TABLE approle ENABLE TRIGGER ALL;
