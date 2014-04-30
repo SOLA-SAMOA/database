@@ -1,4 +1,4 @@
--- 2 Apr 2014
+﻿-- 2 Apr 2014
 -- Changeset containing updates for version 1404a of SOLA.
 
 -- Ticket #138 Config for Measure Tool
@@ -13,10 +13,10 @@ INSERT INTO system.approle_appgroup (approle_code, appgroup_id) (SELECT 'Measure
 -- Ticket 137 - Capture Fees paid by service
 -- Fix the fees related to cancelled services
 UPDATE application.service s
-SET    s.base_fee = 0,
-       s.area_fee = 0,
-       s.value_fee = 0,
-       s.change_user = 'andrew'
+SET    base_fee = 0,
+       area_fee = 0,
+       value_fee = 0,
+       change_user = 'andrew'
 WHERE  s.status_code = 'cancelled'
 AND    s.base_fee + s.area_fee + s.value_fee > 0
 AND    NOT EXISTS (SELECT a.id FROM application.application a
