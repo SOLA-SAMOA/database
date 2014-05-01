@@ -181,6 +181,437 @@ COMMENT ON FUNCTION ba_unit_name_is_valid(name_firstpart character varying, name
 
 
 --
+-- Name: create_strata_properties(character varying, text[], character varying, character varying); Type: FUNCTION; Schema: administrative; Owner: postgres
+--
+
+CREATE FUNCTION create_strata_properties(unit_parcel_group_id character varying, ba_unit_ids text[], trans_id character varying, user_name character varying) RETURNS void
+    LANGUAGE plpgsql
+    AS $$
+DECLARE 
+   common_prop_id CHARACTER VARYING := NULL; 
+   village_id CHARACTER VARYING := NULL;
+   app_nr CHARACTER VARYING := NULL;
+   estate_type CHARACTER VARYING := NULL;
+   pid CHARACTER VARYING := NULL;
+   rrr_ids TEXT[];
+BEGIN 
+
+    -- Bulk create BA Units for any Principal Units or Common Property that do not already have a BA Unit.  
+   INSERT INTO administrative.ba_unit (id, type_code, name, name_firstpart, name_lastpart, transaction_id, change_user)
+   SELECT uuid_generate_v1(), 'strataUnit', co.name_firstpart || '/' || co.name_lastpart, 
+          co.name_firstpart, co.name_lastpart, trans_id, user_name
+   FROM   cadastre.spatial_unit_in_group sig,
+          cadastre.cadastre_object co
+   WHERE  sig.spatial_unit_group_id = unit_parcel_group_id
+   AND    co.id = sig.spatial_unit_id
+   AND    sig.delete_on_approval = FALSE
+   AND    co.type_code IN ('commonProperty', 'principalUnit')
+   AND    NOT EXISTS (SELECT ba.id FROM administrative.ba_unit ba
+                      WHERE ba.name_firstpart = co.name_firstpart
+                      AND   ba.name_lastpart = co.name_lastpart); 
+
+   -- Bulk create ba_unit_contains_spatial_unit   
+   INSERT INTO administrative.ba_unit_contains_spatial_unit (ba_unit_id, spatial_unit_id, change_user)
+   SELECT ba.id, co.id, user_name
+   FROM   cadastre.spatial_unit_in_group sig,
+          cadastre.cadastre_object co,
+          administrative.ba_unit ba
+   WHERE  sig.spatial_unit_group_id = unit_parcel_group_id
+   AND    co.id = sig.spatial_unit_id
+   AND    sig.delete_on_approval = FALSE
+   AND    co.type_code IN ('commonProperty', 'principalUnit')
+   AND    ba.name_firstpart = co.name_firstpart
+   AND    ba.name_lastpart = co.name_lastpart
+   AND    ba.type_code = 'strataUnit'
+   AND    NOT EXISTS (SELECT bas.ba_unit_id FROM administrative.ba_unit_contains_spatial_unit bas
+                      WHERE bas.ba_unit_id = ba.id
+                      AND   bas.spatial_unit_id = co.id); 
+
+   -- Bulk create ba_unit_area
+   INSERT INTO administrative.ba_unit_area(id, ba_unit_id, type_code, size, change_user)
+   SELECT uuid_generate_v1(), bas.ba_unit_id, 'officialArea', sva.size, user_name
+   FROM   cadastre.spatial_unit_in_group sig,
+          cadastre.cadastre_object co,
+          cadastre.spatial_value_area sva,
+          administrative.ba_unit_contains_spatial_unit bas
+   WHERE  sig.spatial_unit_group_id = unit_parcel_group_id
+   AND    co.id = sig.spatial_unit_id
+   AND    sig.delete_on_approval = FALSE
+   AND    co.type_code IN ('commonProperty', 'principalUnit')
+   AND    sva.spatial_unit_id = co.id
+   AND    sva.type_code = 'officialArea'
+   AND    bas.spatial_unit_id = co.id
+   AND    NOT EXISTS (SELECT bua.id FROM administrative.ba_unit_area bua
+                      WHERE bua.ba_unit_id = bas.ba_unit_id
+                      AND   bua.type_code = 'officialArea'); 
+
+   -- Find the Common Property Identifier
+   SELECT bas.ba_unit_id INTO common_prop_id
+   FROM   cadastre.spatial_unit_in_group sig,
+          cadastre.cadastre_object co,
+          administrative.ba_unit_contains_spatial_unit bas
+   WHERE  sig.spatial_unit_group_id = unit_parcel_group_id
+   AND    co.id = sig.spatial_unit_id
+   AND    bas.spatial_unit_id = co.id
+   AND    co.type_code = 'commonProperty';
+
+   IF ba_unit_ids IS NOT NULL THEN
+      -- Link the Common Property to the underlying property(ies) as the Prior Title
+      INSERT INTO administrative.required_relationship_baunit(from_ba_unit_id, to_ba_unit_id, relation_code, change_user)
+      SELECT parent.id, common_prop_id, 'priorTitle', user_name
+      FROM   administrative.ba_unit parent
+      WHERE  parent.id = ANY (ba_unit_ids)
+      AND    parent.status_code IN ('current', 'dormant')
+      AND    parent.type_code != 'strataUnit'
+      AND    NOT EXISTS (SELECT req.from_ba_unit_id FROM administrative.required_relationship_baunit req
+                         WHERE req.from_ba_unit_id = parent.id
+                         AND   req.to_ba_unit_id = common_prop_id
+                         AND   req.relation_code  = 'priorTitle'); 
+	END IF;
+					  
+   -- Determine the village that must be associated with the unit parcels. First check if the
+   -- Common Property has a village specified. If so, use that. 
+   SELECT village.from_ba_unit_id INTO village_id
+   FROM   administrative.required_relationship_baunit village
+   WHERE  village.to_ba_unit_id = common_prop_id
+   AND    village.relation_code = 'title_Village'
+   LIMIT 1;
+   
+   IF village_id IS NULL THEN
+      -- If Common Property does not have a village, try to determine the
+	  -- village from the prior titles. 
+	  SELECT village.from_ba_unit_id INTO village_id
+      FROM   administrative.required_relationship_baunit village,
+	         administrative.required_relationship_baunit comm_prop
+      WHERE  comm_prop.to_ba_unit_id = common_prop_id
+	  AND    comm_prop.relation_code = 'priorTitle'
+	  AND    village.to_ba_unit_id = comm_prop.from_ba_unit_id
+      AND    village.relation_code = 'title_Village'
+      LIMIT 1;
+   END IF;
+   
+   IF village_id IS NOT NULL THEN
+      -- Link the unit parcels to the village
+      INSERT INTO administrative.required_relationship_baunit(from_ba_unit_id, to_ba_unit_id, relation_code, change_user)
+      SELECT village_id, bas.ba_unit_id, 'title_Village', user_name
+      FROM   cadastre.spatial_unit_in_group sig,
+             cadastre.cadastre_object co,
+             administrative.ba_unit_contains_spatial_unit bas
+      WHERE  sig.spatial_unit_group_id = unit_parcel_group_id
+      AND    co.id = sig.spatial_unit_id
+      AND    sig.delete_on_approval = FALSE
+      AND    co.type_code IN ('commonProperty', 'principalUnit')
+      AND    bas.spatial_unit_id = co.id
+      AND    NOT EXISTS (SELECT req.from_ba_unit_id FROM administrative.required_relationship_baunit req
+                         WHERE req.from_ba_unit_id = village_id
+						 AND   req.to_ba_unit_id = bas.ba_unit_id
+                         AND   req.relation_code = 'title_Village'); 
+   END IF;
+
+   -- Link the principal units to the common property
+   INSERT INTO administrative.required_relationship_baunit(from_ba_unit_id, to_ba_unit_id, relation_code, change_user)
+   SELECT common_prop_id, bas.ba_unit_id, 'commonProperty', user_name
+   FROM   cadastre.spatial_unit_in_group sig,
+          cadastre.cadastre_object co,
+          administrative.ba_unit_contains_spatial_unit bas
+   WHERE  sig.spatial_unit_group_id = unit_parcel_group_id
+   AND    co.id = sig.spatial_unit_id
+   AND    sig.delete_on_approval = FALSE
+   AND    co.type_code = 'principalUnit'
+   AND    bas.spatial_unit_id = co.id
+   AND    NOT EXISTS (SELECT req.from_ba_unit_id  FROM administrative.required_relationship_baunit req
+                         WHERE req.from_ba_unit_id = common_prop_id
+						 AND   req.to_ba_unit_id = bas.ba_unit_id
+                         AND   req.relation_code = 'commonProperty');
+						 
+   -- Determine application number to use as notation.reference_nr
+   SELECT split_part(app.nr, '/', 1) INTO app_nr
+   FROM   transaction.transaction t,
+		  application.service s,
+		  application.application app
+   WHERE  t.id = trans_id
+   AND    s.id = t.from_service_id
+   AND    app.id = s.application_id;
+						 
+   -- Create the Body Corporate Rules RRR on the Common Property
+   INSERT INTO administrative.rrr(id, ba_unit_id, nr, type_code, transaction_id, change_user)
+   SELECT uuid_generate_v1(), common_prop_id, trim(to_char(nextval('administrative.rrr_nr_seq'), '000000')), 
+          'bodyCorpRules', trans_id, user_name
+   WHERE  NOT EXISTS (SELECT r.id FROM administrative.rrr r
+                      WHERE r.ba_unit_id = common_prop_id
+				      AND   r.type_code = 'bodyCorpRules');
+					  
+   INSERT INTO administrative.notation(id, rrr_id, notation_text, reference_nr, transaction_id, change_user)
+   SELECT uuid_generate_v1(), r.id, 'Body Corporate Rules',
+          COALESCE(app_nr, trim(to_char(nextval('administrative.notation_reference_nr_seq'), '000000'))), 
+          trans_id, user_name
+   FROM   administrative.rrr r
+   WHERE  r.ba_unit_id = common_prop_id
+   AND    r.type_code = 'bodyCorpRules'
+   AND    NOT EXISTS (SELECT n.id FROM administrative.notation n
+                      WHERE  n.rrr_id = r.id);
+
+   -- Create Address for Service RRR on the Common Property					  
+   INSERT INTO administrative.rrr(id, ba_unit_id, nr, type_code, transaction_id, change_user)
+   SELECT uuid_generate_v1(), common_prop_id, trim(to_char(nextval('administrative.rrr_nr_seq'), '000000')), 
+          'addressForService', trans_id, user_name
+   WHERE  NOT EXISTS (SELECT r.id FROM administrative.rrr r
+                      WHERE r.ba_unit_id = common_prop_id
+				      AND   r.type_code = 'addressForService');
+
+   INSERT INTO administrative.notation(id, rrr_id, notation_text, reference_nr, transaction_id, change_user)
+   SELECT uuid_generate_v1(), r.id, 'Address for Service <address>',
+          COALESCE(app_nr, trim(to_char(nextval('administrative.notation_reference_nr_seq'), '000000'))), 
+          trans_id, user_name
+   FROM   administrative.rrr r
+   WHERE  r.ba_unit_id = common_prop_id
+   AND    r.type_code = 'addressForService'
+   AND    NOT EXISTS (SELECT n.id FROM administrative.notation n
+                      WHERE  n.rrr_id = r.id);
+					  
+   -- Create Unit Entitlement RRRs on the Principal Units. Note that the Unit Entitlement for 
+   -- Accessory Units must be added to the Unit Entitlement for the Principal Unit manually    
+   INSERT INTO administrative.rrr(id, ba_unit_id, nr, type_code, transaction_id, change_user)
+   SELECT uuid_generate_v1(), bas.ba_unit_id, trim(to_char(nextval('administrative.rrr_nr_seq'), '000000')), 
+          'unitEntitlement', trans_id, user_name
+   FROM   cadastre.spatial_unit_in_group sig,
+          cadastre.cadastre_object co,
+          administrative.ba_unit_contains_spatial_unit bas
+   WHERE  sig.spatial_unit_group_id = unit_parcel_group_id
+   AND    co.id = sig.spatial_unit_id
+   AND    sig.delete_on_approval = FALSE
+   AND    co.type_code = 'principalUnit'
+   AND    bas.spatial_unit_id = co.id 
+   AND  NOT EXISTS (SELECT r.id FROM administrative.rrr r
+                      WHERE r.ba_unit_id = bas.ba_unit_id
+				      AND   r.type_code = 'unitEntitlement');
+
+   INSERT INTO administrative.notation(id, rrr_id, notation_text, reference_nr, transaction_id, change_user)
+   SELECT uuid_generate_v1(), r.id, 'Unit entitlement <entitlement>',
+          COALESCE(app_nr, trim(to_char(nextval('administrative.notation_reference_nr_seq'), '000000'))), 
+          trans_id, user_name
+   FROM   cadastre.spatial_unit_in_group sig,
+          cadastre.cadastre_object co,
+          administrative.ba_unit_contains_spatial_unit bas,
+		  administrative.rrr r
+   WHERE  sig.spatial_unit_group_id = unit_parcel_group_id
+   AND    co.id = sig.spatial_unit_id
+   AND    sig.delete_on_approval = FALSE
+   AND    co.type_code = 'principalUnit'
+   AND    bas.spatial_unit_id = co.id 
+   AND    r.ba_unit_id = bas.ba_unit_id
+   AND    r.type_code = 'unitEntitlement'
+   AND    NOT EXISTS (SELECT n.id FROM administrative.notation n
+                      WHERE  n.rrr_id = r.id);
+					  
+						 
+   -- Determine the estate type for the Unit Parcels based on the estate type of the Common Property.
+   -- If the estate type for the Common Property is not specified, use the Estate Type from the
+   -- underlying properties. 
+   SELECT r.type_code INTO estate_type
+   FROM   administrative.rrr r
+   WHERE  r.ba_unit_id = common_prop_id
+   AND    r.is_primary = TRUE
+   AND    r.status_code IN ('pending', 'current')
+   -- Use Order By to ensure the current RRR is selected in preference to the pending RRR. 
+   ORDER BY r.status_code   
+   LIMIT 1;	
+
+   IF estate_type IS NULL THEN
+	  SELECT r.type_code INTO estate_type
+      FROM   administrative.required_relationship_baunit req,
+	         administrative.rrr r
+      WHERE  req.to_ba_unit_id = common_prop_id
+	  AND    req.relation_code = 'priorTitle'
+	  AND    r.ba_unit_id = req.from_ba_unit_id
+      AND    r.is_primary = TRUE
+      AND    r.status_code = 'current'
+      LIMIT 1;
+   END IF; 
+
+   -- Create the Primary RRR for the Common Property referencing a "Body Corporate" party. 
+   INSERT INTO administrative.rrr(id, ba_unit_id, nr, type_code, is_primary, transaction_id, change_user)
+   SELECT uuid_generate_v1(), common_prop_id, trim(to_char(nextval('administrative.rrr_nr_seq'), '000000')), 
+          estate_type, TRUE, trans_id, user_name
+   WHERE  NOT EXISTS (SELECT r.id FROM administrative.rrr r
+                      WHERE r.ba_unit_id = common_prop_id
+				      AND   r.type_code = estate_type);
+
+   INSERT INTO administrative.notation(id, rrr_id, notation_text, reference_nr, transaction_id, change_user)
+   SELECT uuid_generate_v1(), r.id, 'Body Corporate of ' || ba.name_lastpart, 
+          COALESCE(app_nr, trim(to_char(nextval('administrative.notation_reference_nr_seq'), '000000'))), 
+          trans_id, user_name
+   FROM   administrative.rrr r,
+          administrative.ba_unit ba
+   WHERE  ba.id = common_prop_id
+   AND    r.ba_unit_id = ba.id
+   AND    r.type_code = estate_type
+   AND    NOT EXISTS (SELECT n.id FROM administrative.notation n
+                      WHERE  n.rrr_id = r.id); 
+					  
+   INSERT INTO administrative.rrr_share(id, rrr_id, nominator, denominator, change_user)
+   SELECT uuid_generate_v1(), r.id, 1, 1, user_name
+   FROM   administrative.rrr r
+   WHERE  r.ba_unit_id = common_prop_id
+   AND    r.type_code = estate_type
+   AND    NOT EXISTS (SELECT s.id FROM administrative.rrr_share s
+                      WHERE  s.rrr_id = r.id); 
+
+   SELECT COALESCE((SELECT pfr.party_id 
+                    FROM   administrative.rrr r,
+					       administrative.party_for_rrr pfr
+					WHERE  r.ba_unit_id = common_prop_id
+					AND    r.type_code = estate_type
+					AND    pfr.rrr_id = r.id), uuid_generate_v1()::VARCHAR(40)) INTO pid;	
+
+   INSERT INTO party.party(id, type_code, name, change_user)
+   SELECT pid, 'nonNaturalPerson', 'Body Corporate of ' || 
+        (SELECT name_lastpart FROM administrative.ba_unit WHERE id = common_prop_id), user_name
+   WHERE  NOT EXISTS (SELECT p.id FROM party.party p
+                      WHERE  p.id = pid);
+					  
+   INSERT INTO administrative.party_for_rrr(rrr_id, party_id, share_id, change_user)
+   SELECT r.id, pid, s.id, user_name
+   FROM   administrative.rrr r,
+          administrative.rrr_share s
+   WHERE  r.ba_unit_id = common_prop_id
+   AND    r.type_code = estate_type
+   AND    s.rrr_id = r.id
+   AND    NOT EXISTS (SELECT pfr.rrr_id FROM administrative.party_for_rrr pfr
+                      WHERE  pfr.rrr_id = r.id
+					  AND    pfr.share_id = s.id
+					  AND    pfr.party_id = pid); 
+					  
+    -- Duplicate the RRRs from the underlying properties onto the new Unit parcels.
+    -- Usually this will only be the primary RRR, but may include mortgages and 
+    -- caveats if these exist on the underlying properties. 
+	
+	-- First collect all of the Current RRRs from the underlying property(ies), 
+	-- but only pick one primary RRR to use for the primary estate. 
+	--
+	-- Note that all RRR's on the underlying property(ies) may be historic if the
+	-- underlying property is Dormant. In this case, the user will need to manually
+	-- create the necessary RRR's on the new Unit Parcel(s). 
+	SELECT array_agg(tmp.id) INTO rrr_ids
+	FROM (
+		SELECT r.id
+		FROM   administrative.required_relationship_baunit req,
+			   administrative.rrr r
+		WHERE  req.to_ba_unit_id = common_prop_id
+		AND    req.relation_code = 'priorTitle'
+		AND    r.ba_unit_id = req.from_ba_unit_id
+		AND    r.is_primary = FALSE
+		AND    r.status_code = 'current'
+		UNION
+		SELECT r.id
+		FROM   administrative.required_relationship_baunit req,
+			   administrative.rrr r
+		WHERE  req.to_ba_unit_id = common_prop_id
+		AND    req.relation_code = 'priorTitle'
+		AND    r.ba_unit_id = req.from_ba_unit_id
+		AND    r.is_primary = TRUE
+		AND    r.status_code = 'current'
+		AND    r.type_code = estate_type -- Make sure the estate type is consistent with the Common Property
+		LIMIT 1) tmp; 
+	
+	-- Duplicate the RRR's. Requires a new column, source_rrr to ensure RRR's are correctly duplicated. 
+    INSERT INTO administrative.rrr(id, ba_unit_id, nr, type_code, is_primary, transaction_id, share,
+	            mortgage_amount, mortgage_interest_rate, mortgage_type_code, source_rrr, change_user)
+    SELECT uuid_generate_v1(), bas.ba_unit_id, trim(to_char(nextval('administrative.rrr_nr_seq'), '000000')), 
+          r_orig.type_code, r_orig.is_primary, trans_id, r_orig.share, r_orig.mortgage_amount, 
+		  r_orig.mortgage_interest_rate, r_orig.mortgage_type_code, r_orig.id, user_name
+	FROM  cadastre.spatial_unit_in_group sig,
+          cadastre.cadastre_object co,
+          administrative.ba_unit_contains_spatial_unit bas,
+		  administrative.rrr r_orig
+    WHERE  sig.spatial_unit_group_id = unit_parcel_group_id
+    AND    co.id = sig.spatial_unit_id
+    AND    sig.delete_on_approval = FALSE
+    AND    co.type_code = 'principalUnit'
+    AND    bas.spatial_unit_id = co.id
+	AND    r_orig.id = ANY (rrr_ids)
+    AND  NOT EXISTS (SELECT r.id FROM administrative.rrr r
+                      WHERE r.ba_unit_id = bas.ba_unit_id
+				      AND   r.source_rrr = r_orig.id);
+
+   -- Duplicate the notations if they exist, otherwise create an empty notation. 
+   INSERT INTO administrative.notation(id, rrr_id, notation_text, reference_nr, transaction_id, change_user)
+   SELECT uuid_generate_v1(), r.id, 
+          COALESCE((SELECT n_orig.notation_text FROM administrative.notation n_orig WHERE  n_orig.rrr_id = r_orig.id), ''),
+          COALESCE(app_nr, trim(to_char(nextval('administrative.notation_reference_nr_seq'), '000000'))), 
+          trans_id, user_name
+   FROM   administrative.rrr r,
+          administrative.rrr r_orig
+   WHERE  r_orig.id = ANY (rrr_ids)
+   AND    r.source_rrr = r_orig.id
+   AND    NOT EXISTS (SELECT n.id FROM administrative.notation n
+                      WHERE  n.rrr_id = r.id); 
+		
+	-- Duplicate the RRR Shares	
+   INSERT INTO administrative.rrr_share(id, rrr_id, nominator, denominator, source_rrr_share, change_user)
+   SELECT uuid_generate_v1(), r.id, s_orig.nominator, s_orig.denominator, s_orig.id, user_name
+   FROM   administrative.rrr r,
+          administrative.rrr r_orig,
+		  administrative.rrr_share s_orig
+   WHERE  r_orig.id = ANY (rrr_ids)
+   AND    r.source_rrr = r_orig.id
+   AND    s_orig.rrr_id = r_orig.id
+   AND    NOT EXISTS (SELECT s.id FROM administrative.rrr_share s
+                      WHERE  s.rrr_id = r.id
+					  AND    s.source_rrr_share = s_orig.id)
+					  
+   -- Don't recreate the rrr_share if the user has previously deleted it
+   AND    NOT EXISTS (SELECT s.id FROM administrative.rrr_share_historic s
+                      WHERE  s.rrr_id = r.id
+					  AND    s.source_rrr_share = s_orig.id); 
+
+   -- Link the new RRR's to the original parties. Choose to avoid duplicating the
+   -- party record to simplify this query. Also any subsequent change to party
+   -- would require a new party record to be created anyway.     
+   INSERT INTO administrative.party_for_rrr(rrr_id, party_id, share_id, change_user)
+   SELECT DISTINCT r.id, pfr_orig.party_id, s.id, user_name
+   FROM   administrative.rrr r,
+          administrative.rrr r_orig,
+          administrative.rrr_share s,
+		  administrative.rrr_share s_orig,
+		  administrative.party_for_rrr pfr_orig
+   WHERE  r_orig.id = ANY (rrr_ids)
+   AND    r.source_rrr = r_orig.id
+   AND    s_orig.rrr_id = r_orig.id
+   AND    s.source_rrr_share = s_orig.id
+   AND    s.rrr_id = r.id
+   AND    pfr_orig.rrr_id = r_orig.id
+   AND    pfr_orig.share_id = s_orig.id
+   AND    NOT EXISTS (SELECT pfr.rrr_id FROM administrative.party_for_rrr pfr
+                      WHERE  pfr.rrr_id = r.id
+					  AND    pfr.share_id = s.id
+					  AND    pfr.party_id = pfr_orig.party_id)
+					  
+   -- Don't create the pfr if the user has previously deleted it. 				  
+   AND    NOT EXISTS (SELECT pfr.rrr_id FROM administrative.party_for_rrr_historic pfr
+                      WHERE  pfr.rrr_id = r.id
+					  AND    pfr.share_id = s.id
+					  AND    pfr.party_id = pfr_orig.party_id); 					  
+					  
+	-- Update the transaction table to reference this unit parcel group
+	UPDATE transaction.transaction
+	SET spatial_unit_group_id = unit_parcel_group_id,
+	    change_user = user_name
+	WHERE id = trans_id;   
+	
+   END; $$;
+
+
+ALTER FUNCTION administrative.create_strata_properties(unit_parcel_group_id character varying, ba_unit_ids text[], trans_id character varying, user_name character varying) OWNER TO postgres;
+
+--
+-- Name: FUNCTION create_strata_properties(unit_parcel_group_id character varying, ba_unit_ids text[], trans_id character varying, user_name character varying); Type: COMMENT; Schema: administrative; Owner: postgres
+--
+
+COMMENT ON FUNCTION create_strata_properties(unit_parcel_group_id character varying, ba_unit_ids text[], trans_id character varying, user_name character varying) IS 'Creates the Strata Properties based on the Unit Development Parcel Group. Can be used to create new properties if the list of unit parcels is modified.';
+
+
+--
 -- Name: f_for_tbl_rrr_trg_change_from_pending(); Type: FUNCTION; Schema: administrative; Owner: postgres
 --
 
@@ -572,10 +1003,53 @@ COMMENT ON FUNCTION get_concatenated_name(service_id character varying) IS 'Retu
 
 
 --
+-- Name: get_estate_type(character varying, character varying); Type: FUNCTION; Schema: application; Owner: postgres
+--
+
+CREATE FUNCTION get_estate_type(service_id character varying, request_type character varying) RETURNS character varying
+    LANGUAGE plpgsql
+    AS $$ 
+DECLARE
+  estate_type VARCHAR(20); 
+BEGIN
+   IF service_id IS NULL OR request_type IS NULL OR request_type NOT IN ('registerLease', 'subLease') THEN
+      RETURN '';
+   END IF; 
+
+   SELECT p.type_code
+   INTO   estate_type
+   FROM   transaction.transaction t,
+	  administrative.rrr r,
+	  administrative.rrr p
+   WHERE  t.from_service_id = service_id
+   AND    r.transaction_id = t.id
+   AND    p.ba_unit_id = r.ba_unit_id
+   AND    p.is_primary = true
+   AND    p.status_code = 'current';
+
+   IF estate_type IS NULL THEN
+      estate_type := '';
+   END IF;
+   
+   RETURN estate_type;
+   
+END; $$;
+
+
+ALTER FUNCTION application.get_estate_type(service_id character varying, request_type character varying) OWNER TO postgres;
+
+--
+-- Name: FUNCTION get_estate_type(service_id character varying, request_type character varying); Type: COMMENT; Schema: application; Owner: postgres
+--
+
+COMMENT ON FUNCTION get_estate_type(service_id character varying, request_type character varying) IS 'Returns the estate type of the property related to the service. Only tested with Record Lease and Record Sublease services. Used by the Lodgement Statistics Report.';
+
+
+--
 -- Name: get_work_summary(date, date); Type: FUNCTION; Schema: application; Owner: postgres
 --
 
-CREATE FUNCTION get_work_summary(from_date date, to_date date) RETURNS TABLE(req_type character varying, req_cat character varying, group_idx integer, in_progress_from integer, on_requisition_from integer, lodged integer, requisitioned integer, registered integer, cancelled integer, withdrawn integer, in_progress_to integer, on_requisition_to integer, overdue integer, overdue_apps text, requisition_apps text)
+CREATE FUNCTION get_work_summary(from_date date, to_date date) RETURNS TABLE(req_type character varying, req_cat character varying, group_idx integer, in_progress_from integer, on_requisition_from integer, lodged integer, requisitioned integer, registered integer, cancelled integer, withdrawn integer, in_progress_to integer, on_requisition_to integer, overdue integer, service_fee numeric, overdue_apps text, requisition_apps text)
     LANGUAGE plpgsql
     AS $$
 DECLARE 
@@ -601,8 +1075,25 @@ BEGIN
       -- Identifies all services lodged during the reporting period. Uses the
 	  -- change_time instead of lodging_datetime to ensure all datetime comparisons 
 	  -- across all subqueries yield consistent results 
-      WITH service_lodged AS
-	   ( SELECT ser.id, ser.application_id, ser.request_type_code
+      WITH estate_types AS 
+	     -- Ticket #137 provide a breakdown by estate type for Record Lease and Record Sublease
+         (SELECT req.code as req_code, rt.code as rt_code, 
+                 get_translation(rt.display_value, null) as rt_display
+          FROM   application.request_type req,
+                 administrative.rrr_type rt
+          WHERE  rt.is_primary = true
+          AND    rt.status = 'c'
+          AND    req.code IN ('registerLease', 'subLease')
+          AND    req.status = 'c'
+          UNION 
+		  -- Use to capture any services that do not link to a property with an
+		  -- estate type specified
+          SELECT req.code AS req_code, '' AS rt_code, 'Unspecified' AS rt_display
+          FROM   application.request_type req
+          WHERE  req.code IN ('registerLease', 'subLease')
+          AND    req.status = 'c'),
+      service_lodged AS (
+	 SELECT ser.id, ser.application_id, ser.request_type_code
          FROM   application.service ser
          WHERE  ser.change_time BETWEEN from_date AND to_date
 		 AND    ser.rowversion = 1
@@ -750,9 +1241,81 @@ BEGIN
 	 AND   app_hist.rowversion = (SELECT MAX(app_hist2.rowversion)
 				      FROM  application.application_historic app_hist2
 				      WHERE app_hist.id = app_hist2.id
-				      AND   app_hist2.change_time <= from_date))
+				      AND   app_hist2.change_time <= from_date)),
+	
+    -- Ticket #137	
+	-- Attempts to determine the fee paid for each service during the reporting period. This query is capable
+	-- of dealing with partial payments and negative payments, but it may also misrepresent the fee paid
+	-- per service if a new service is added to the application post lodgement. The logic attempts to 
+	-- pro rata any new payment amounts evenly across all services, so when a new service is added, only
+	-- part of any new payment may be allocated to the new service. 
+	fee_paid AS (
+		-- Payment details captured as part of initial lodgement and the application does not have any history
+		SELECT s.id, s.request_type_code,
+			   TRUNC(((a.total_amount_paid/a.total_fee) * (s.base_fee + s.value_fee)), 2) AS ser_fee, a.rowversion
+		FROM  application.application a, 
+			  application.service s
+		WHERE s.application_id = a.id
+		AND   s.status_code != 'cancelled'
+		AND   a.total_fee  > 0
+		AND   a.total_amount_paid > 0
+		AND   a.change_time BETWEEN from_date AND to_date
+		AND   s.lodging_datetime <= a.change_time
+		AND   a.rowversion = 1
+		UNION
+		-- Payment made on the most recent save of the application (need to compare ot history of application to determine if 
+		-- the total_amount_paid has changed. 
+		SELECT s.id, s.request_type_code,
+			   TRUNC((((a.total_amount_paid - app_hist.total_amount_paid)/a.total_fee) * (s.base_fee + s.value_fee)), 2) AS ser_fee, a.rowversion
+		FROM  application.application a, 
+			  application.service s,
+			  application.application_historic app_hist
+		WHERE s.application_id = a.id
+		AND   s.status_code != 'cancelled'
+		AND   a.total_fee  > 0
+		AND   a.change_time BETWEEN from_date AND to_date
+			AND   s.lodging_datetime <= a.change_time
+		AND   app_hist.id = a.id
+		AND   app_hist.rowversion = (a.rowversion - 1)
+		AND   app_hist.total_amount_paid != a.total_amount_paid
+		-- Ignore records where the total_fee changed by the same amount as the total paid. 
+		AND   a.total_fee - app_hist.total_fee != a.total_amount_paid - app_hist.total_amount_paid
+		UNION
+		-- Payment made at an earlier time and captured in the application history
+		SELECT s.id, s.request_type_code,
+			   TRUNC((((a.total_amount_paid - app_hist.total_amount_paid)/a.total_fee) * (s.base_fee + s.value_fee)), 2) AS ser_fee, a.rowversion
+		FROM  application.application_historic a, 
+			  application.service s,
+			  application.application_historic app_hist
+		WHERE s.application_id = a.id
+		AND   s.status_code != 'cancelled'
+		AND   a.total_fee  > 0
+		AND   a.change_time BETWEEN from_date AND to_date
+		AND   s.lodging_datetime <= a.change_time
+		AND   app_hist.id = a.id
+		AND   app_hist.rowversion = (a.rowversion - 1)
+		AND   app_hist.total_amount_paid != a.total_amount_paid
+		-- Ignore records where the total_fee changed by the same amount as the total paid.
+		AND   a.total_fee - app_hist.total_fee != a.total_amount_paid - app_hist.total_amount_paid
+		UNION
+		-- Only one payment made to the original lodgement record which is now in history.
+		SELECT s.id, s.request_type_code,
+			   TRUNC(((a.total_amount_paid/a.total_fee) * (s.base_fee + s.value_fee)), 2) AS ser_fee, a.rowversion
+		FROM  application.application_historic a, 
+			  application.service s
+		WHERE s.application_id = a.id
+		AND   s.status_code != 'cancelled'
+		AND   a.total_fee  > 0
+		AND   a.total_amount_paid > 0
+		AND   a.change_time BETWEEN from_date AND to_date
+		-- Allow 1 minute buffer as the services may be saved a few seconds after the application is initially created. 
+		AND   s.lodging_datetime <= a.change_time + interval '1 minute'
+		AND   a.rowversion = 1
+		)
    -- MAIN QUERY                         
-   SELECT get_translation(req.display_value, null) AS req_type,
+   SELECT (CASE WHEN rt_display IS NULL THEN get_translation(req.display_value, null) 
+            ELSE  get_translation(req.display_value, null)  || ' - ' || rt_display END)::VARCHAR(200) AS req_type,
+             --get_translation(req.display_value, null) AS req_type,
 	  CASE req.request_category_code 
 	     WHEN 'registrationServices' THEN get_translation(cat.display_value, null)
 	     WHEN 'cadastralServices' THEN get_translation(cat.display_value, null)
@@ -768,18 +1331,21 @@ BEGIN
          (SELECT COUNT(s.id) FROM service_in_progress_from s, app_in_progress_from a
           WHERE s.application_id = a.id
           AND   a.status_code = 'lodged'
-	  AND request_type_code = req.code)::INT AS in_progress_from,
+	  AND request_type_code = req.code
+	  AND application.get_estate_type(s.id, req.code) = COALESCE(rt_code, ''))::INT AS in_progress_from,
 
 	  -- Count of the services associated with requisitioned 
 	  -- applications at the end of the reporting period
          (SELECT COUNT(s.id) FROM service_in_progress_from s, app_in_progress_from a
 	  WHERE s.application_id = a.id
           AND   a.status_code = 'requisitioned'
-	  AND s.request_type_code = req.code)::INT AS on_requisition_from,
+	  AND s.request_type_code = req.code
+	  AND application.get_estate_type(s.id, req.code) = COALESCE(rt_code, ''))::INT AS on_requisition_from,
 	     
 	  -- Count the services lodged during the reporting period.
 	 (SELECT COUNT(s.id) FROM service_lodged s
-	  WHERE s.request_type_code = req.code)::INT AS lodged,
+	  WHERE s.request_type_code = req.code
+	  AND application.get_estate_type(s.id, req.code) = COALESCE(rt_code, ''))::INT AS lodged,
 	  
       -- Count the applications that were requisitioned during the
 	  -- reporting period. All of the services on the application
@@ -794,7 +1360,8 @@ BEGIN
 	  AND   s.lodging_datetime < to_date
 	  AND   NOT EXISTS (SELECT can.id FROM service_cancelled can
                         WHERE s.id = can.id)	  
-          AND   s.request_type_code = req.code)::INT AS requisitioned, 
+          AND   s.request_type_code = req.code
+          AND   application.get_estate_type(s.id, req.code) = COALESCE(rt_code, ''))::INT AS requisitioned, 
           
 	  -- Count the services on applications approved/completed 
 	  -- during the reporting period. Note that services cannot be
@@ -804,7 +1371,8 @@ BEGIN
 	  WHERE s.application_id = a.id
 	  AND   a.status_code = 'approved'
 	  AND   s.status_code = 'completed'
-	  AND   s.request_type_code = req.code)::INT AS registered,
+	  AND   s.request_type_code = req.code
+	  AND   application.get_estate_type(s.id, req.code) = COALESCE(rt_code, ''))::INT AS registered,
 	  
 	  -- Count of the services associated with applications 
 	  -- that have been lapsed or rejected + the count of 
@@ -817,11 +1385,13 @@ BEGIN
 		  AND   a.status_code = 'annulled'
 		  AND   a.withdrawn = FALSE
 		  AND   s.request_type_code = req.code
+		  AND   application.get_estate_type(s.id, req.code) = COALESCE(rt_code, '')
           UNION		  
 		  SELECT s.id FROM app_changed a, service_cancelled s
 		  WHERE s.application_id = a.id
 		  AND   a.status_code != 'annulled'
-		  AND   s.request_type_code = req.code) AS tmp)::INT AS cancelled, 
+		  AND   s.request_type_code = req.code
+		  AND   application.get_estate_type(s.id, req.code) = COALESCE(rt_code, '')) AS tmp)::INT AS cancelled, 
 	  
 	  -- Count of the services associated with applications
 	  -- that have been withdrawn during the reporting period
@@ -832,31 +1402,44 @@ BEGIN
 	  AND   a.status_code = 'annulled'
 	  AND   a.withdrawn = TRUE
 	  AND   s.status_code != 'cancelled'
-	  AND   s.request_type_code = req.code)::INT AS withdrawn,
+	  AND   s.request_type_code = req.code
+	  AND   application.get_estate_type(s.id, req.code) = COALESCE(rt_code, ''))::INT AS withdrawn,
 
 	  -- Count of the pending and lodged services associated with
 	  -- lodged applications at the end of the reporting period
          (SELECT COUNT(s.id) FROM service_in_progress s, app_in_progress a
           WHERE s.application_id = a.id
           AND   a.status_code = 'lodged'
-	  AND request_type_code = req.code)::INT AS in_progress_to,
+	  AND request_type_code = req.code
+	  AND application.get_estate_type(s.id, req.code) = COALESCE(rt_code, ''))::INT AS in_progress_to,
 
 	  -- Count of the services associated with requisitioned 
 	  -- applications at the end of the reporting period
          (SELECT COUNT(s.id) FROM service_in_progress s, app_in_progress a
 	  WHERE s.application_id = a.id
           AND   a.status_code = 'requisitioned'
-	  AND s.request_type_code = req.code)::INT AS on_requisition_to,
+	  AND s.request_type_code = req.code
+	  AND application.get_estate_type(s.id, req.code) = COALESCE(rt_code, ''))::INT AS on_requisition_to,
 
 	  -- Count of the services that have exceeded thier expected
 	  -- completion date and are overdue. Only counts the service 
 	  -- as overdue if both the application and the service are overdue. 
-         (SELECT COUNT(s.id) FROM service_in_progress s, app_in_progress a
+     (SELECT COUNT(s.id) FROM service_in_progress s, app_in_progress a
           WHERE s.application_id = a.id
           AND   a.status_code = 'lodged'              
 	  AND   a.expected_completion_date < to_date
 	  AND   s.expected_completion_date < to_date
-	  AND   s.request_type_code = req.code)::INT AS overdue,  
+	  AND   s.request_type_code = req.code
+	  AND application.get_estate_type(s.id, req.code) = COALESCE(rt_code, ''))::INT AS overdue,  
+	  
+	  -- Ticket #137
+	  -- Sum the total paid for each fee. Note that for Samoa, only details
+	  -- are required for the Record Plan service, (a.k.a. Cadastre Change) 
+	  -- so exclude other service types. 
+    (SELECT SUM(f.ser_fee) FROM fee_paid f
+      WHERE f.request_type_code = req.code
+	  AND   application.get_estate_type(f.id, req.code) = COALESCE(rt_code, '')
+	  AND   req.code IN ('cadastreChange'))::NUMERIC(20,2) AS service_fee, 
 
 	  -- The list of overdue applications 
 	 (SELECT string_agg(a.nr, ', ') FROM app_in_progress a
@@ -865,16 +1448,18 @@ BEGIN
           AND   EXISTS (SELECT s.application_id FROM service_in_progress s
                         WHERE s.application_id = a.id
                         AND   s.expected_completion_date < to_date
-                        AND   s.request_type_code = req.code)) AS overdue_apps,   
+                        AND   s.request_type_code = req.code
+                        AND    application.get_estate_type(s.id, req.code) = COALESCE(rt_code, ''))) AS overdue_apps,   
 
 	  -- The list of applications on Requisition
 	 (SELECT string_agg(a.nr, ', ') FROM app_in_progress a
           WHERE a.status_code = 'requisitioned' 
           AND   EXISTS (SELECT s.application_id FROM service_in_progress s
                         WHERE s.application_id = a.id
-                        AND   s.request_type_code = req.code)) AS requisition_apps 						
-   FROM  application.request_type req, 
-	 application.request_category_type cat
+                        AND   s.request_type_code = req.code
+                        AND   application.get_estate_type(s.id, req.code) = COALESCE(rt_code, ''))) AS requisition_apps						
+   FROM  application.request_category_type cat, 
+         application.request_type req LEFT OUTER JOIN estate_types ON req_code = req.code
    WHERE req.status = 'c'
    AND   cat.code = req.request_category_code					 
    ORDER BY group_idx, req_type;
@@ -2949,7 +3534,8 @@ CREATE TABLE rrr (
     rowversion integer DEFAULT 0 NOT NULL,
     change_action character(1) DEFAULT 'i'::bpchar NOT NULL,
     change_user character varying(50),
-    change_time timestamp without time zone DEFAULT now() NOT NULL
+    change_time timestamp without time zone DEFAULT now() NOT NULL,
+    source_rrr character varying(40)
 );
 
 
@@ -3097,6 +3683,13 @@ COMMENT ON COLUMN rrr.change_time IS 'SOLA Extension: The date and time the row 
 
 
 --
+-- Name: COLUMN rrr.source_rrr; Type: COMMENT; Schema: administrative; Owner: postgres
+--
+
+COMMENT ON COLUMN rrr.source_rrr IS 'SOLA Extension: Used by the administrative.create_strata_properties prodcedure to determine the source RRR used to create the new rrr for a unit parcel property.';
+
+
+--
 -- Name: rrr_group_type; Type: TABLE; Schema: administrative; Owner: postgres; Tablespace: 
 --
 
@@ -3170,7 +3763,8 @@ CREATE TABLE rrr_historic (
     change_action character(1),
     change_user character varying(50),
     change_time timestamp without time zone,
-    change_time_valid_until timestamp without time zone DEFAULT now() NOT NULL
+    change_time_valid_until timestamp without time zone DEFAULT now() NOT NULL,
+    source_rrr character varying(40)
 );
 
 
@@ -3210,7 +3804,8 @@ CREATE TABLE rrr_share (
     rowversion integer DEFAULT 0 NOT NULL,
     change_action character(1) DEFAULT 'i'::bpchar NOT NULL,
     change_user character varying(50),
-    change_time timestamp without time zone DEFAULT now() NOT NULL
+    change_time timestamp without time zone DEFAULT now() NOT NULL,
+    source_rrr_share character varying(40)
 );
 
 
@@ -3288,6 +3883,13 @@ COMMENT ON COLUMN rrr_share.change_time IS 'The date and time the row was last m
 
 
 --
+-- Name: COLUMN rrr_share.source_rrr_share; Type: COMMENT; Schema: administrative; Owner: postgres
+--
+
+COMMENT ON COLUMN rrr_share.source_rrr_share IS 'SOLA Extension: Used by the administrative.create_strata_properties prodcedure to determine the source RRR share used to create the new rrr share for a unit parcel property.';
+
+
+--
 -- Name: rrr_share_historic; Type: TABLE; Schema: administrative; Owner: postgres; Tablespace: 
 --
 
@@ -3301,7 +3903,8 @@ CREATE TABLE rrr_share_historic (
     change_action character(1),
     change_user character varying(50),
     change_time timestamp without time zone,
-    change_time_valid_until timestamp without time zone DEFAULT now() NOT NULL
+    change_time_valid_until timestamp without time zone DEFAULT now() NOT NULL,
+    source_rrr_share character varying(40)
 );
 
 
@@ -6949,6 +7552,16 @@ CREATE TABLE survey_point_historic (
 
 
 ALTER TABLE cadastre.survey_point_historic OWNER TO postgres;
+
+--
+-- Name: unit_parcels; Type: VIEW; Schema: cadastre; Owner: postgres
+--
+
+CREATE VIEW unit_parcels AS
+    SELECT co.id, ((btrim((co.name_firstpart)::text) || ' PLAN '::text) || btrim((co.name_lastpart)::text)) AS label, co.geom_polygon AS "theGeom" FROM cadastre_object co, spatial_unit_in_group sug WHERE ((((((sug.spatial_unit_id)::text = (co.id)::text) AND ((co.type_code)::text = 'parcel'::text)) AND ((co.status_code)::text = 'current'::text)) AND (co.geom_polygon IS NOT NULL)) AND ((sug.unit_parcel_status_code)::text = 'current'::text));
+
+
+ALTER TABLE cadastre.unit_parcels OWNER TO postgres;
 
 --
 -- Name: utility_network_status_type; Type: TABLE; Schema: cadastre; Owner: postgres; Tablespace: 

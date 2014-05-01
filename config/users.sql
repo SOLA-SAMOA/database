@@ -225,6 +225,12 @@ INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversi
 INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('MeasureTool', '80', 'bf714a0e-b9ff-11e3-8877-1777a5282621', 1, 'i', 'db:postgres', '2014-04-02 13:43:03.084');
 INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('MeasureTool', '70', 'bf72346e-b9ff-11e3-9e1c-af739e042ea5', 1, 'i', 'db:postgres', '2014-04-02 13:43:03.084');
 INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('lapseCaveat', '60', 'a3964d46-ba0b-11e3-bf9b-8b159f9d8226', 1, 'i', 'db:postgres', '2014-04-02 15:08:10.316');
+INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('newUnitTitle', '60', 'ab8e9d98-d188-11e3-930c-fb9223f9b49f', 1, 'i', 'db:postgres', '2014-05-02 11:31:07.504');
+INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('varyCommonProperty', '60', 'ab8ec4b2-d188-11e3-ac2e-5f1cc85d046b', 1, 'i', 'db:postgres', '2014-05-02 11:31:07.504');
+INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('cancelUnitPlan', '60', 'ab8eebc2-d188-11e3-b1b6-7b815ec0df1f', 1, 'i', 'db:postgres', '2014-05-02 11:31:07.504');
+INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('changeBodyCorp', '60', 'ab8f12d2-d188-11e3-99c0-df7fa58e7a21', 1, 'i', 'db:postgres', '2014-05-02 11:31:07.504');
+INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('StrataUnitCreate', '60', 'ab8f39e2-d188-11e3-906a-af58c29306b5', 1, 'i', 'db:postgres', '2014-05-02 11:31:07.504');
+INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('unitPlan', '70', 'ab8faf12-d188-11e3-8420-ab10ffc7e621', 1, 'i', 'db:postgres', '2014-05-02 11:31:07.504');
 
 
 ALTER TABLE approle_appgroup ENABLE TRIGGER ALL;

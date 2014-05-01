@@ -184,6 +184,51 @@ INSERT INTO query (name, sql, description) VALUES ('map_search.survey_plan', 'SE
   WHERE app.location IS NOT NULL
   AND   app.status_code != ''annulled''
   AND compare_strings(#{search_string}, app.nr)', NULL);
+INSERT INTO query (name, sql, description) VALUES ('SpatialResult.getUnitParcel', 'SELECT co.id, cadastre.formatParcelNrLabel(co.name_firstpart, co.name_lastpart) as label,  st_asewkb(co.geom_polygon) as the_geom 
+  FROM cadastre.cadastre_object co, cadastre.spatial_unit_in_group sug
+  WHERE sug.spatial_unit_id = co.id AND co.type_code = ''parcel'' AND co.status_code = ''current'' 
+  AND co.geom_polygon IS NOT NULL AND sug.unit_parcel_status_code = ''current''
+  AND ST_Intersects(co.geom_polygon, ST_SetSRID(ST_MakeBox3D(ST_Point(#{minx}, #{miny}),ST_Point(#{maxx}, #{maxy})), #{srid}))', NULL);
+INSERT INTO query (name, sql, description) VALUES ('dynamic.informationtool.get_unit_parcel', 'WITH unit_plan_parcels AS 
+	  (SELECT co_unit.id AS unit_id,
+	          sug2.spatial_unit_group_id AS group_id,
+			  CASE co_unit.type_code 
+				WHEN ''commonProperty'' THEN 1 
+				WHEN ''principalUnit'' THEN 2
+				WHEN ''accessoryUnit'' THEN 3 END  AS unit_type, 
+			  co_unit.name_firstpart AS unit_name, 
+			  co_unit.name_lastpart AS plan_num
+	   FROM   cadastre.cadastre_object co_unit, 
+	          cadastre.spatial_unit_in_group sug2
+	   WHERE  co_unit.status_code = ''current''
+	   AND    co_unit.type_code != ''parcel''
+	   AND    sug2.spatial_unit_id = co_unit.id
+	   AND    sug2.unit_parcel_status_code = ''current''
+	   ORDER BY unit_type, plan_num, unit_name)
+	SELECT co.id, 
+			cadastre.formatParcelNr(co.name_firstpart, co.name_lastpart) as parcel_nr,
+		   (SELECT  string_agg(unit_name, '', '') 
+			FROM 	unit_plan_parcels
+			WHERE   group_id = sg.id) || '' PLAN '' || sg.name AS unit_parcels,
+		   (SELECT string_agg(ba.name_firstpart || ''/'' || ba.name_lastpart, '', '') 
+			FROM 	unit_plan_parcels, 
+					administrative.ba_unit_contains_spatial_unit bas, 
+					administrative.ba_unit ba
+			WHERE	group_id = sg.id 
+			AND     bas.spatial_unit_id = unit_id 
+			AND     bas.ba_unit_id = ba.id
+			AND     ba.status_code = ''current'') AS unit_properties,
+			st_asewkb(co.geom_polygon) as the_geom
+	FROM 	cadastre.cadastre_object co, 
+	        cadastre.spatial_unit_in_group sug,
+			cadastre.spatial_unit_group sg
+	WHERE 	co.type_code= ''parcel'' 
+	AND 	co.status_code= ''current''  
+	AND     sug.unit_parcel_status_code = ''current''
+    AND     sug.spatial_unit_id = co.id
+	AND     sg.id = sug.spatial_unit_group_id
+	AND		co.geom_polygon IS NOT NULL
+	AND 	ST_Intersects(co.geom_polygon, ST_SetSRID(ST_GeomFromWKB(#{wkb_geom}), #{srid}))', NULL);
 
 
 ALTER TABLE query ENABLE TRIGGER ALL;
@@ -211,6 +256,7 @@ INSERT INTO config_map_layer (name, title, type_code, active, visible_in_start, 
 INSERT INTO config_map_layer (name, title, type_code, active, visible_in_start, item_order, style, url, wms_layers, wms_version, wms_format, pojo_structure, pojo_query_name, pojo_query_name_for_select, shape_location, security_user, security_password) VALUES ('parcel_area', 'Parcel Area::::Tele o le poloka', 'pojo', true, false, 25, 'samoa_parcel_area.xml', NULL, NULL, NULL, NULL, 'theGeom:Polygon,label:""', 'SpatialResult.getParcelAreas', NULL, NULL, NULL, NULL);
 INSERT INTO config_map_layer (name, title, type_code, active, visible_in_start, item_order, style, url, wms_layers, wms_version, wms_format, pojo_structure, pojo_query_name, pojo_query_name_for_select, shape_location, security_user, security_password) VALUES ('road', 'Roads::::Auala', 'pojo', true, false, 105, 'samoa_road.xml', NULL, NULL, NULL, NULL, 'theGeom:Polygon,label:""', 'SpatialResult.getRoad', 'dynamic.informationtool.get_road', NULL, NULL, NULL);
 INSERT INTO config_map_layer (name, title, type_code, active, visible_in_start, item_order, style, url, wms_layers, wms_version, wms_format, pojo_structure, pojo_query_name, pojo_query_name_for_select, shape_location, security_user, security_password) VALUES ('flur', 'Flur::::SAMOAN', 'pojo', true, false, 102, 'samoa_flur.xml', NULL, NULL, NULL, NULL, 'theGeom:Polygon,label:""', 'SpatialResult.getFlur', 'dynamic.informationtool.get_flur', NULL, NULL, NULL);
+INSERT INTO config_map_layer (name, title, type_code, active, visible_in_start, item_order, style, url, wms_layers, wms_version, wms_format, pojo_structure, pojo_query_name, pojo_query_name_for_select, shape_location, security_user, security_password) VALUES ('unit_parcel', 'Unit Parcels::::SAMOAN', 'pojo', true, false, 35, 'samoa_unit_parcel.xml', NULL, NULL, NULL, NULL, 'theGeom:Polygon,label:""', 'SpatialResult.getUnitParcel', 'dynamic.informationtool.get_unit_parcel', NULL, NULL, NULL);
 
 
 ALTER TABLE config_map_layer ENABLE TRIGGER ALL;
@@ -289,6 +335,11 @@ INSERT INTO query_field (query_name, index_in_query, name, display_value) VALUES
 INSERT INTO query_field (query_name, index_in_query, name, display_value) VALUES ('dynamic.informationtool.get_flur', 0, 'id', NULL);
 INSERT INTO query_field (query_name, index_in_query, name, display_value) VALUES ('dynamic.informationtool.get_flur', 1, 'label', 'Flur Number::::SAMOAN');
 INSERT INTO query_field (query_name, index_in_query, name, display_value) VALUES ('dynamic.informationtool.get_flur', 2, 'the_geom', NULL);
+INSERT INTO query_field (query_name, index_in_query, name, display_value) VALUES ('dynamic.informationtool.get_unit_parcel', 0, 'id', NULL);
+INSERT INTO query_field (query_name, index_in_query, name, display_value) VALUES ('dynamic.informationtool.get_unit_parcel', 1, 'parcel_nr', 'Parcel number::::Poloka numera');
+INSERT INTO query_field (query_name, index_in_query, name, display_value) VALUES ('dynamic.informationtool.get_unit_parcel', 2, 'unit_parcels', 'Unit Parcels::::SAMOAN');
+INSERT INTO query_field (query_name, index_in_query, name, display_value) VALUES ('dynamic.informationtool.get_unit_parcel', 3, 'unit_properties', 'Strata Properties::::SAMOAN');
+INSERT INTO query_field (query_name, index_in_query, name, display_value) VALUES ('dynamic.informationtool.get_unit_parcel', 4, 'the_geom', NULL);
 
 
 ALTER TABLE query_field ENABLE TRIGGER ALL;

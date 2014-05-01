@@ -23,6 +23,7 @@ INSERT INTO ba_unit_rel_type (code, display_value, description, status) VALUES (
 INSERT INTO ba_unit_rel_type (code, display_value, description, status) VALUES ('island_District', 'Island::::Motu', 'Island - Districts', 'x');
 INSERT INTO ba_unit_rel_type (code, display_value, description, status) VALUES ('district_Village', 'District::::Itumalo', 'District - Villages', 'x');
 INSERT INTO ba_unit_rel_type (code, display_value, description, status) VALUES ('title_Village', 'Village::::Nuu', 'Title - Village', 'c');
+INSERT INTO ba_unit_rel_type (code, display_value, description, status) VALUES ('commonProperty', 'Common Property::::SAMOAN', NULL, 'c');
 
 
 ALTER TABLE ba_unit_rel_type ENABLE TRIGGER ALL;
@@ -37,6 +38,7 @@ INSERT INTO ba_unit_type (code, display_value, description, status) VALUES ('lea
 INSERT INTO ba_unit_type (code, display_value, description, status) VALUES ('propertyRightUnit', 'Property Right Unit::::Unita Diritto Proprieta', NULL, 'x');
 INSERT INTO ba_unit_type (code, display_value, description, status) VALUES ('basicPropertyUnit', 'Basic Property Unit::::Vaega mo Meatotino Amata', 'This is the basic property unit that is used by default', 'c');
 INSERT INTO ba_unit_type (code, display_value, description, status) VALUES ('administrativeUnit', 'Administrative Unit::::Vaega o Pulega', NULL, 'x');
+INSERT INTO ba_unit_type (code, display_value, description, status) VALUES ('strataUnit', 'Strata Property Unit::::SAMOAN', NULL, 'c');
 
 
 ALTER TABLE ba_unit_type ENABLE TRIGGER ALL;
@@ -62,8 +64,8 @@ ALTER TABLE rrr_group_type DISABLE TRIGGER ALL;
 
 INSERT INTO rrr_group_type (code, display_value, description, status) VALUES ('rights', 'Rights::::Aiatatau', NULL, 'c');
 INSERT INTO rrr_group_type (code, display_value, description, status) VALUES ('restrictions', 'Restrictions::::Aiaiga', NULL, 'c');
-INSERT INTO rrr_group_type (code, display_value, description, status) VALUES ('responsibilities', 'Responsibilities::::Responsabilita', NULL, 'x');
 INSERT INTO rrr_group_type (code, display_value, description, status) VALUES ('system', 'System', 'Groups RRRs that exist solely to support SOLA system functionality', 'x');
+INSERT INTO rrr_group_type (code, display_value, description, status) VALUES ('responsibilities', 'Responsibilities::::SAMOAN', NULL, 'c');
 
 
 ALTER TABLE rrr_group_type ENABLE TRIGGER ALL;
@@ -90,6 +92,10 @@ INSERT INTO rrr_type (code, rrr_group_type_code, display_value, is_primary, shar
 INSERT INTO rrr_type (code, rrr_group_type_code, display_value, is_primary, share_check, party_required, description, status) VALUES ('dominant', 'rights', 'Dominant Estate::::SAMOAN', false, false, false, 'Indicates the property has been granted rights to an easement over another property as the dominant estate.', 'x');
 INSERT INTO rrr_type (code, rrr_group_type_code, display_value, is_primary, share_check, party_required, description, status) VALUES ('transmission', 'rights', 'Transmission::::SAMOAN', false, false, true, 'Transmission.', 'c');
 INSERT INTO rrr_type (code, rrr_group_type_code, display_value, is_primary, share_check, party_required, description, status) VALUES ('miscellaneous', 'rights', 'Miscellaneous::::SAMOAN', false, false, false, 'Miscellaneous', 'c');
+INSERT INTO rrr_type (code, rrr_group_type_code, display_value, is_primary, share_check, party_required, description, status) VALUES ('unitEntitlement', 'rights', 'Unit Entitlement::::SAMOAN', false, false, false, 'Indicates the unit entitlement the unit has in relation to the unit development.', 'c');
+INSERT INTO rrr_type (code, rrr_group_type_code, display_value, is_primary, share_check, party_required, description, status) VALUES ('bodyCorpRules', 'responsibilities', 'Body Corporate Rules::::SAMOAN', false, false, false, 'The body corporate rules for a unit development.', 'c');
+INSERT INTO rrr_type (code, rrr_group_type_code, display_value, is_primary, share_check, party_required, description, status) VALUES ('addressForService', 'responsibilities', 'Address for Service::::SAMOAN', false, false, false, 'The body corporate address for service.', 'c');
+INSERT INTO rrr_type (code, rrr_group_type_code, display_value, is_primary, share_check, party_required, description, status) VALUES ('commonProperty', 'system', 'Common Property', false, false, false, 'System RRR type used by SOLA to represent the unit development body corporate responsibilities', 'x');
 
 
 ALTER TABLE rrr_type ENABLE TRIGGER ALL;
@@ -213,6 +219,11 @@ INSERT INTO request_type (code, request_category_code, display_value, descriptio
 INSERT INTO request_type (code, request_category_code, display_value, description, status, nr_days_to_complete, base_fee, area_base_fee, value_base_fee, nr_properties_required, notation_template, rrr_type_code, type_action_code) VALUES ('removeEasement', 'registrationServices', 'Cancel Easement::::SAMOAN', 'Cancel Easement', 'c', 5, 0.00, 0.00, 0.00, 1, 'Easement <reference> cancelled', 'easement', 'cancel');
 INSERT INTO request_type (code, request_category_code, display_value, description, status, nr_days_to_complete, base_fee, area_base_fee, value_base_fee, nr_properties_required, notation_template, rrr_type_code, type_action_code) VALUES ('easement', 'registrationServices', 'Record Easement::::SAMOAN', 'Easement::::...', 'c', 5, 0.00, 0.00, 0.00, 1, 'Subject to Memorandum of Easements endorsed thereon', 'easement', 'new');
 INSERT INTO request_type (code, request_category_code, display_value, description, status, nr_days_to_complete, base_fee, area_base_fee, value_base_fee, nr_properties_required, notation_template, rrr_type_code, type_action_code) VALUES ('lapseCaveat', 'registrationServices', 'Lapse of Caveat::::SAMOAN', 'Withdrawal of Caveat', 'c', 5, 0.00, 0.00, 0.00, 1, 'Caveat <reference> cancelled', 'caveat', 'cancel');
+INSERT INTO request_type (code, request_category_code, display_value, description, status, nr_days_to_complete, base_fee, area_base_fee, value_base_fee, nr_properties_required, notation_template, rrr_type_code, type_action_code) VALUES ('unitPlan', 'cadastralServices', 'Record Unit Plan::::SAMOAN', 'Unit Plan', 'c', 30, 23.00, 0.00, 11.50, 1, NULL, NULL, NULL);
+INSERT INTO request_type (code, request_category_code, display_value, description, status, nr_days_to_complete, base_fee, area_base_fee, value_base_fee, nr_properties_required, notation_template, rrr_type_code, type_action_code) VALUES ('newUnitTitle', 'registrationServices', 'Create Unit Titles::::SAMOAN', 'Create Unit Titles', 'c', 5, 0.00, 0.00, 0.00, 1, 'New <estate type> unit title', NULL, NULL);
+INSERT INTO request_type (code, request_category_code, display_value, description, status, nr_days_to_complete, base_fee, area_base_fee, value_base_fee, nr_properties_required, notation_template, rrr_type_code, type_action_code) VALUES ('varyCommonProperty', 'registrationServices', 'Change Common Property::::SAMOAN', 'Vary Common Property', 'c', 5, 100.00, 0.00, 0.00, 1, NULL, NULL, NULL);
+INSERT INTO request_type (code, request_category_code, display_value, description, status, nr_days_to_complete, base_fee, area_base_fee, value_base_fee, nr_properties_required, notation_template, rrr_type_code, type_action_code) VALUES ('cancelUnitPlan', 'registrationServices', 'Cancel Unit Plan::::SAMOAN', 'Unit Plan Cancellation', 'c', 5, 100.00, 0.00, 0.00, 1, NULL, NULL, 'cancel');
+INSERT INTO request_type (code, request_category_code, display_value, description, status, nr_days_to_complete, base_fee, area_base_fee, value_base_fee, nr_properties_required, notation_template, rrr_type_code, type_action_code) VALUES ('changeBodyCorp', 'registrationServices', 'Change Body Corporate::::SAMOAN', 'Variation to Body Corporate', 'c', 5, 100.00, 0.00, 0.00, 1, 'Change Body Corporate Rules / Change Address for Service to <address>', 'commonProperty', 'vary');
 
 
 ALTER TABLE request_type ENABLE TRIGGER ALL;
@@ -283,6 +294,9 @@ ALTER TABLE cadastre_object_type DISABLE TRIGGER ALL;
 INSERT INTO cadastre_object_type (code, display_value, description, status, in_topology) VALUES ('parcel', 'Parcel::::Poloka', NULL, 'c', true);
 INSERT INTO cadastre_object_type (code, display_value, description, status, in_topology) VALUES ('buildingUnit', 'Building Unit::::Iunite o le Fale', NULL, 'c', false);
 INSERT INTO cadastre_object_type (code, display_value, description, status, in_topology) VALUES ('utilityNetwork', 'Utility Network::::feso''ota''iga i auala mana''omia', NULL, 'c', false);
+INSERT INTO cadastre_object_type (code, display_value, description, status, in_topology) VALUES ('principalUnit', 'Principal Unit::::SAMOAN', NULL, 'c', false);
+INSERT INTO cadastre_object_type (code, display_value, description, status, in_topology) VALUES ('accessoryUnit', 'Accessory Unit::::SAMOAN', NULL, 'c', false);
+INSERT INTO cadastre_object_type (code, display_value, description, status, in_topology) VALUES ('commonProperty', 'Common Property::::SAMOAN', NULL, 'c', false);
 
 
 ALTER TABLE cadastre_object_type ENABLE TRIGGER ALL;
@@ -537,6 +551,8 @@ INSERT INTO administrative_source_type (code, display_value, status, description
 INSERT INTO administrative_source_type (code, display_value, status, description, is_for_registration) VALUES ('traverse', 'Traverse Sheet::::SAMOAN', 'c', NULL, false);
 INSERT INTO administrative_source_type (code, display_value, status, description, is_for_registration) VALUES ('flurPlan', 'Flur Plan::::SAMOAN', 'c', NULL, false);
 INSERT INTO administrative_source_type (code, display_value, status, description, is_for_registration) VALUES ('courtJudgement', 'Lands and Titles Court Judgement::::...', 'c', 'Judgement issued by the Lands and Titles Court::::...', false);
+INSERT INTO administrative_source_type (code, display_value, status, description, is_for_registration) VALUES ('unitPlan', 'Unit Plan::::SAMOAN', 'c', NULL, false);
+INSERT INTO administrative_source_type (code, display_value, status, description, is_for_registration) VALUES ('bodyCorpRules', 'Body Corporate Rules::::SAMOAN', 'c', NULL, false);
 
 
 ALTER TABLE administrative_source_type ENABLE TRIGGER ALL;
@@ -718,6 +734,12 @@ INSERT INTO approle (code, display_value, status, description) VALUES ('varyMort
 INSERT INTO approle (code, display_value, status, description) VALUES ('varyRight', 'Vary Right or Restriction', 'c', 'Allows to make changes for registration of a variation to a right or restriction');
 INSERT INTO approle (code, display_value, status, description) VALUES ('MeasureTool', 'Measure Tool', 'c', 'Allows user to measure a distance on the map.');
 INSERT INTO approle (code, display_value, status, description) VALUES ('lapseCaveat', 'Lapse Caveat', 'c', 'Used for processing Lapse Caveat services.');
+INSERT INTO approle (code, display_value, status, description) VALUES ('unitPlan', 'Record Unit Plan::::SAMOAN', 'c', NULL);
+INSERT INTO approle (code, display_value, status, description) VALUES ('newUnitTitle', 'Create Unit Titles::::SAMOAN', 'c', NULL);
+INSERT INTO approle (code, display_value, status, description) VALUES ('varyCommonProperty', 'Change Common Property::::SAMOAN', 'c', NULL);
+INSERT INTO approle (code, display_value, status, description) VALUES ('cancelUnitPlan', 'Cancel Unit Plan::::SAMOAN', 'c', NULL);
+INSERT INTO approle (code, display_value, status, description) VALUES ('changeBodyCorp', 'Change Body Corporate::::SAMOAN', 'c', NULL);
+INSERT INTO approle (code, display_value, status, description) VALUES ('StrataUnitCreate', 'Create Strata Property', 'c', NULL);
 
 
 ALTER TABLE approle ENABLE TRIGGER ALL;
@@ -759,6 +781,7 @@ INSERT INTO br_validation_target_type (code, display_value, status, description)
 INSERT INTO br_validation_target_type (code, display_value, status, description) VALUES ('ba_unit', 'Administrative Unit::::Iunite Pulega', 'c', 'The target of the validation is the ba_unit. It accepts one parameter {id} which is the ba_unit id.');
 INSERT INTO br_validation_target_type (code, display_value, status, description) VALUES ('source', 'Source::::Tupuaga', 'c', 'The target of the validation is the source. It accepts one parameter {id} which is the source id.');
 INSERT INTO br_validation_target_type (code, display_value, status, description) VALUES ('cadastre_object', 'Cadastre Object::::Faamaumauga i totonu o le faafanua', 'c', 'The target of the validation is the transaction related with the cadastre change. It accepts one parameter {id} which is the transaction id.');
+INSERT INTO br_validation_target_type (code, display_value, status, description) VALUES ('unit_plan', 'Unit Plan', 'c', 'The target of the validation is the transaction related with the unit plan. It accepts one parameter {id} which is the transaction id.');
 
 
 ALTER TABLE br_validation_target_type ENABLE TRIGGER ALL;
@@ -787,6 +810,7 @@ INSERT INTO reg_status_type (code, display_value, description, status) VALUES ('
 INSERT INTO reg_status_type (code, display_value, description, status) VALUES ('pending', 'Pending::::Faamalumalu', NULL, 'c');
 INSERT INTO reg_status_type (code, display_value, description, status) VALUES ('historic', 'Historic/Cancelled::::Faasolopito', NULL, 'c');
 INSERT INTO reg_status_type (code, display_value, description, status) VALUES ('previous', 'Previous::::Tuanai', NULL, 'c');
+INSERT INTO reg_status_type (code, display_value, description, status) VALUES ('dormant', 'Dormant::::SAMOAN', NULL, 'c');
 
 
 ALTER TABLE reg_status_type ENABLE TRIGGER ALL;

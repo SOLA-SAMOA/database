@@ -6,8 +6,16 @@ INSERT INTO system.approle (code, display_value, status, description)
 SELECT 'MeasureTool', 'Measure Tool','c', 'Allows user to measure a distance on the map.'
 WHERE NOT EXISTS (SELECT code FROM system.approle WHERE code = 'MeasureTool');
 
-INSERT INTO system.approle_appgroup (approle_code, appgroup_id) (SELECT 'MeasureTool', id FROM system.appgroup WHERE "name" = 'Technical Division');
-INSERT INTO system.approle_appgroup (approle_code, appgroup_id) (SELECT 'MeasureTool', id FROM system.appgroup WHERE "name" = 'Quality Assurance'); 
+INSERT INTO system.approle_appgroup (approle_code, appgroup_id) 
+    (SELECT 'MeasureTool', ag.id FROM system.appgroup ag WHERE ag."name" = 'Technical Division'
+	 AND NOT EXISTS (SELECT approle_code FROM system.approle_appgroup 
+	                 WHERE  approle_code = 'MeasureTool'
+					 AND    appgroup_id = ag.id));
+INSERT INTO system.approle_appgroup (approle_code, appgroup_id) 
+    (SELECT 'MeasureTool', id FROM system.appgroup ag WHERE "name" = 'Quality Assurance'
+     AND NOT EXISTS (SELECT approle_code FROM system.approle_appgroup 
+	                 WHERE  approle_code = 'MeasureTool'
+					 AND    appgroup_id = ag.id));
 
 
 -- Ticket 137 - Capture Fees paid by service

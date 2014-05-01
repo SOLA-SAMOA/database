@@ -93,6 +93,11 @@ il valore della nuova area ufficiale in percentuale non dovrebbe essere superior
  Check new official area - calculated new area / new official area in percentage (Give in WARNING description, percentage & parcel if percentage > 1%)');
 INSERT INTO br (id, display_name, technical_type_code, feedback, description, technical_description) VALUES ('source-attach-in-transaction-no-pendings', 'source-attach-in-transaction-no-pendings', 'sql', 'Document (source file) must not be duplicated::::Documento non deve avere stato pendente', NULL, '#{id}(source.source.id) is requested. It checks if the source has already a record with the status pending.');
 INSERT INTO br (id, display_name, technical_type_code, feedback, description, technical_description) VALUES ('source-attach-in-transaction-allowed-type', 'source-attach-in-transaction-allowed-type', 'sql', 'Document to be registered must have an allowable and current source type::::Documento deve essere di tipo consentito per la transazione', NULL, '#{id}(source.source.id) is requested. It checks if the source has a type which has the is_for_registration attribute true.');
+INSERT INTO br (id, display_name, technical_type_code, feedback, description, technical_description) VALUES ('unit-plan-underlying-parcel-missing', 'unit-plan-underlying-parcel-missing', 'sql', 'The underlying parcel(s) for the unit development must be selected on the map', NULL, '#{id}(transaction_id) is requested');
+INSERT INTO br (id, display_name, technical_type_code, feedback, description, technical_description) VALUES ('unit-plan-parcel-area-mismatch', 'unit-plan-parcel-area-mismatch', 'sql', 'The total area for the unit parcels and the common property should match the official area of the underlying parcels', NULL, '#{id}(transaction_id) is requested');
+INSERT INTO br (id, display_name, technical_type_code, feedback, description, technical_description) VALUES ('unit-plan-unlinked-accessory-units', 'unit-plan-unlinked-accessory-units', 'sql', 'All Accessory Units are associated with a Principal Unit', NULL, '#{id}(service_id) is requested');
+INSERT INTO br (id, display_name, technical_type_code, feedback, description, technical_description) VALUES ('unit-plan-missing-entitlement', 'unit-plan-missing-entitlement', 'sql', 'All Principal Units have an Unit Entitlement specified', NULL, '#{id}(service_id) is requested');
+INSERT INTO br (id, display_name, technical_type_code, feedback, description, technical_description) VALUES ('unit-plan-title-area-mismatch', 'unit-plan-title-area-mismatch', 'sql', 'The total area for the unit titles and the common property title should match the official area of the underlying property', NULL, '#{id}(service_id) is requested');
 
 
 ALTER TABLE br ENABLE TRIGGER ALL;
@@ -527,35 +532,6 @@ INSERT INTO br_definition (br_id, active_from, active_until, body) VALUES ('appl
            )
 
         ) as vl');
-INSERT INTO br_definition (br_id, active_from, active_until, body) VALUES ('newtitle-br22-check-different-owners', '2012-11-22', 'infinity', 'WITH new_property_owner AS (
-	SELECT  COALESCE(name, '''') || '' '' || COALESCE(last_name, '''') AS newOwnerStr FROM party.party po
-		INNER JOIN administrative.party_for_rrr pfr1 ON (po.id = pfr1.party_id)
-		INNER JOIN administrative.rrr rr1 ON (pfr1.rrr_id = rr1.id)
-	WHERE rr1.ba_unit_id = #{id}),
-	
-  prior_property_owner AS (
-	SELECT  COALESCE(name, '''') || '' '' || COALESCE(last_name, '''') AS priorOwnerStr FROM party.party pn
-		INNER JOIN administrative.party_for_rrr pfr2 ON (pn.id = pfr2.party_id)
-		INNER JOIN administrative.rrr rr2 ON (pfr2.rrr_id = rr2.id)
-		INNER JOIN administrative.required_relationship_baunit rfb ON (rr2.ba_unit_id = rfb.from_ba_unit_id)
-	WHERE	rfb.to_ba_unit_id = #{id}
-	LIMIT 1	)
-
-SELECT 	CASE 	WHEN (SELECT (COUNT(*) = 0) FROM prior_property_owner) THEN NULL
-		WHEN (SELECT (COUNT(*) != 0) FROM new_property_owner npo WHERE compare_strings((SELECT priorOwnerStr FROM prior_property_owner), npo.newOwnerStr)) THEN TRUE
-		ELSE FALSE
-	END AS vl
-ORDER BY vl
-LIMIT 1');
-INSERT INTO br_definition (br_id, active_from, active_until, body) VALUES ('ba_unit-spatial_unit-area-comparison', '2012-11-22', 'infinity', 'SELECT (abs(coalesce(ba_a.size,0.001) - 
- (select coalesce(sum(sv_a.size), 0.001) 
-  from cadastre.spatial_value_area sv_a inner join administrative.ba_unit_contains_spatial_unit ba_s 
-    on sv_a.spatial_unit_id= ba_s.spatial_unit_id
-  where sv_a.type_code = ''officialArea'' and ba_s.ba_unit_id= ba.id))/coalesce(ba_a.size,0.001)) < 0.001 as vl
-FROM administrative.ba_unit ba left join administrative.ba_unit_area ba_a 
-  on ba.id= ba_a.ba_unit_id and ba_a.type_code = ''officialArea''
-WHERE ba.id = #{id}
-');
 INSERT INTO br_definition (br_id, active_from, active_until, body) VALUES ('ba_unit-has-cadastre-object', '2012-11-22', 'infinity', 'SELECT count(*)>0 vl
 from administrative.ba_unit_contains_spatial_unit ba_s 
 WHERE ba_s.ba_unit_id = #{id}');
@@ -820,6 +796,21 @@ SELECT CASE WHEN CAST(#{transactionId} AS VARCHAR(40)) IS NOT NULL THEN (
 						WHERE 	t.id = #{transactionId}	
 						AND   	ser.id = t.from_service_id))
             ELSE (SELECT trim(to_char(nextval(''administrative.notation_reference_nr_seq''), ''000000''))) END AS vl');
+INSERT INTO br_definition (br_id, active_from, active_until, body) VALUES ('application-verifies-identification', '2012-11-22', '2013-01-31', 'SELECT (COUNT(*) > 0) AS vl FROM source.source sc
+	INNER JOIN application.application_uses_source aus ON (sc.id = aus.source_id)
+WHERE aus.application_id= #{id}
+AND sc.type_code = ''idVerification''');
+INSERT INTO br_definition (br_id, active_from, active_until, body) VALUES ('service-has-person-verification', '2012-11-22', '2013-01-31', 'SELECT (COUNT(*) > 0) AS vl FROM source.source sc
+	INNER JOIN application.application_uses_source aus ON ((sc.id = aus.source_id) AND (sc.type_code = ''idVerification''))
+	INNER JOIN application.service sv ON (aus.application_id = sv.application_id)
+WHERE sv.id= #{id}
+ORDER BY vl
+LIMIT 1');
+INSERT INTO br_definition (br_id, active_from, active_until, body) VALUES ('generate-baunit-nr', '2012-11-22', 'infinity', 'SELECT CASE WHEN CAST(#{cadastreObjectId} AS VARCHAR(40)) IS NOT NULL
+	THEN (SELECT (CASE WHEN co.type_code = ''parcel'' THEN regexp_replace(co.name_firstpart, ''\D*|/.*'',  '''', ''g'') ELSE co.name_firstpart END) 
+	        || ''/'' || regexp_replace(co.name_lastpart, ''[\s|L|l]$'',  '''') FROM cadastre.cadastre_object co WHERE id = #{cadastreObjectId})
+	ELSE (SELECT to_char(now(), ''yymm'') || trim(to_char(nextval(''administrative.ba_unit_first_name_part_seq''), ''0000''))
+			|| ''/200000'') END AS vl');
 INSERT INTO br_definition (br_id, active_from, active_until, body) VALUES ('generate-application-nr', '2012-11-22', 'infinity', '
 WITH unit_plan_nr AS 
   (SELECT split_part(app.nr, ''/'', 1) AS app_nr, (COUNT(ser.id) + 1) AS suffix
@@ -838,7 +829,7 @@ WITH unit_plan_nr AS
    GROUP BY app_nr)
 SELECT CASE (SELECT cat.code FROM application.request_category_type cat, application.request_type req WHERE req.code = #{requestTypeCode} AND cat.code = req.request_category_code) 
 	WHEN ''cadastralServices'' THEN
-	     (SELECT CASE WHEN (SELECT COUNT(app_nr) FROM unit_plan_nr) = 0 AND #{requestTypeCode} IN (''cadastreChange'', ''planNoCoords'') THEN
+	     (SELECT CASE WHEN (SELECT COUNT(app_nr) FROM unit_plan_nr) = 0 AND #{requestTypeCode} IN (''cadastreChange'', ''planNoCoords'', ''unitPlan'') THEN
 	                        trim(to_char(nextval(''application.survey_plan_nr_seq''), ''00000''))
 					  WHEN (SELECT COUNT(app_nr) FROM unit_plan_nr) = 0 AND #{requestTypeCode} = ''redefineCadastre'' THEN
 					        trim(to_char(nextval(''application.information_nr_seq''), ''000000''))
@@ -846,21 +837,157 @@ SELECT CASE (SELECT cat.code FROM application.request_category_type cat, applica
 	WHEN ''registrationServices'' THEN trim(to_char(nextval(''application.dealing_nr_seq''),''00000'')) 
 	WHEN ''nonRegServices'' THEN trim(to_char(nextval(''application.non_register_nr_seq''),''00000'')) 
 	ELSE trim(to_char(nextval(''application.information_nr_seq''), ''000000'')) END AS vl');
-INSERT INTO br_definition (br_id, active_from, active_until, body) VALUES ('application-verifies-identification', '2012-11-22', '2013-01-31', 'SELECT (COUNT(*) > 0) AS vl FROM source.source sc
-	INNER JOIN application.application_uses_source aus ON (sc.id = aus.source_id)
-WHERE aus.application_id= #{id}
-AND sc.type_code = ''idVerification''');
-INSERT INTO br_definition (br_id, active_from, active_until, body) VALUES ('service-has-person-verification', '2012-11-22', '2013-01-31', 'SELECT (COUNT(*) > 0) AS vl FROM source.source sc
-	INNER JOIN application.application_uses_source aus ON ((sc.id = aus.source_id) AND (sc.type_code = ''idVerification''))
-	INNER JOIN application.service sv ON (aus.application_id = sv.application_id)
-WHERE sv.id= #{id}
+INSERT INTO br_definition (br_id, active_from, active_until, body) VALUES ('unit-plan-underlying-parcel-missing', '2014-04-10', 'infinity', 'SELECT count(*) > 0 as vl 
+FROM   transaction.transaction t,
+       cadastre.spatial_unit_in_group sig,
+       cadastre.cadastre_object co
+WHERE  t.id = #{id}
+AND    sig.spatial_unit_group_id = t.spatial_unit_group_id
+AND    co.id = sig.spatial_unit_id
+AND    co.type_code = ''parcel''
+AND    co.status_code = ''current''');
+INSERT INTO br_definition (br_id, active_from, active_until, body) VALUES ('unit-plan-parcel-area-mismatch', '2014-04-10', 'infinity', 'WITH unit_par AS (
+SELECT SUM(sva.size) AS area
+FROM   transaction.transaction t,
+       cadastre.spatial_unit_in_group sig,
+       cadastre.cadastre_object co,
+       cadastre.spatial_value_area sva
+WHERE  t.id = #{id}
+AND    sig.spatial_unit_group_id = t.spatial_unit_group_id
+AND    sig.delete_on_approval = FALSE
+AND    co.id = sig.spatial_unit_id
+AND    co.type_code != ''parcel''
+AND    co.status_code != ''historic''
+AND    sva.type_code = ''officialArea''
+AND    sva.spatial_unit_id = co.id),
+    under_par AS (
+SELECT SUM(sva.size) AS area
+FROM   transaction.transaction t,
+       cadastre.spatial_unit_in_group sig,
+       cadastre.cadastre_object co,
+       cadastre.spatial_value_area sva
+WHERE  t.id = #{id}
+AND    sig.spatial_unit_group_id = t.spatial_unit_group_id
+AND    co.id = sig.spatial_unit_id
+AND    co.type_code = ''parcel''
+AND    co.status_code = ''current''
+AND    sva.type_code = ''officialArea''
+AND    sva.spatial_unit_id = co.id),
+    under_prop AS (
+SELECT SUM(sva.size) AS area
+FROM   transaction.transaction t,
+       cadastre.spatial_unit_in_group sig,
+       cadastre.cadastre_object co,
+       administrative.ba_unit_contains_spatial_unit bas,
+       administrative.ba_unit_area sva
+WHERE  t.id = #{id}
+AND    sig.spatial_unit_group_id = t.spatial_unit_group_id
+AND    co.id = sig.spatial_unit_id
+AND    co.type_code = ''parcel''
+AND    co.status_code = ''current''
+AND    bas.spatial_unit_id = co.id
+AND    sva.ba_unit_id = bas.ba_unit_id
+AND    sva.type_code = ''officialArea'')
+SELECT (CASE WHEN COUNT(under_par.area) = 0 THEN SUM(unit_par.area) = SUM(under_prop.area)
+            ELSE SUM(unit_par.area) = SUM(under_par.area) END) AS vl
+FROM  unit_par, under_par, under_prop');
+INSERT INTO br_definition (br_id, active_from, active_until, body) VALUES ('unit-plan-unlinked-accessory-units', '2014-04-10', 'infinity', 'SELECT count(*) = 0 as vl 
+FROM   transaction.transaction t,
+       cadastre.spatial_unit_in_group sig,
+       cadastre.cadastre_object co
+WHERE  t.from_service_id = #{id}
+AND    sig.spatial_unit_group_id = t.spatial_unit_group_id
+AND    co.id = sig.spatial_unit_id
+AND    co.type_code = ''accessoryUnit''
+AND    co.status_code = ''current''
+AND    NOT EXISTS (SELECT bas.spatial_unit_id 
+                   FROM administrative.ba_unit_contains_spatial_unit bas
+                   WHERE bas.spatial_unit_id = co.id) ');
+INSERT INTO br_definition (br_id, active_from, active_until, body) VALUES ('unit-plan-missing-entitlement', '2014-04-10', 'infinity', 'SELECT count(*) = 0 as vl 
+FROM   transaction.transaction t,
+       cadastre.spatial_unit_in_group sig,
+       cadastre.cadastre_object co
+WHERE  t.from_service_id = #{id}
+AND    sig.spatial_unit_group_id = t.spatial_unit_group_id
+AND    co.id = sig.spatial_unit_id
+AND    co.type_code = ''principalUnit''
+AND    co.status_code = ''current''
+AND    EXISTS (SELECT bas.spatial_unit_id 
+                   FROM administrative.ba_unit_contains_spatial_unit bas,
+				        administrative.rrr r
+                   WHERE bas.spatial_unit_id = co.id
+				   AND   r.ba_unit_id = bas.ba_unit_id
+				   AND   r.type_code = ''unitEntitlement''
+				   AND   r.status_code IN (''pending'', ''current'')
+				   AND   (r.share IS NULL OR r.share < 1)) ');
+INSERT INTO br_definition (br_id, active_from, active_until, body) VALUES ('unit-plan-title-area-mismatch', '2014-04-10', 'infinity', 'WITH unit_title AS (
+SELECT SUM(ba.size) AS area
+FROM   transaction.transaction t,
+       cadastre.spatial_unit_in_group sig,
+       cadastre.cadastre_object co,
+       administrative.ba_unit_contains_spatial_unit bas,
+	   administrative.ba_unit b,
+	   administrative.ba_unit_area ba
+WHERE  t.from_service_id = #{id}
+AND    sig.spatial_unit_group_id = t.spatial_unit_group_id
+AND    co.id = sig.spatial_unit_id
+AND    co.type_code IN (''principalUnit'', ''commonProperty'')
+AND    co.status_code = ''current''
+AND    bas.spatial_unit_id = co.id
+AND    b.id = bas.ba_unit_id
+AND    b.status_code != ''historic''
+AND    ba.ba_unit_id = b.id
+AND    ba.type_code = ''officialArea''),
+    under_prop AS (
+SELECT SUM(sva.size) AS area
+FROM   transaction.transaction t,
+       cadastre.spatial_unit_in_group sig,
+       cadastre.cadastre_object co,
+       administrative.ba_unit_contains_spatial_unit bas,
+	   administrative.ba_unit b,
+       administrative.ba_unit_area ba
+WHERE  t.id = #{id}
+AND    sig.spatial_unit_group_id = t.spatial_unit_group_id
+AND    co.id = sig.spatial_unit_id
+AND    co.type_code = ''parcel''
+AND    co.status_code = ''current''
+AND    bas.spatial_unit_id = co.id
+AND    b.id = bas.ba_unit_id
+AND    b.status_code != ''historic''
+AND    ba.ba_unit_id = b.id
+AND    ba.type_code = ''officialArea'')
+SELECT SUM(unit_title.area) = SUM(under_prop.area) AS vl
+FROM  unit_title, under_prop');
+INSERT INTO br_definition (br_id, active_from, active_until, body) VALUES ('ba_unit-spatial_unit-area-comparison', '2012-11-22', 'infinity', 'SELECT (abs(coalesce(ba_a.size,0.001) - 
+ (select coalesce(sum(sv_a.size), 0.001) 
+  from cadastre.spatial_value_area sv_a inner join administrative.ba_unit_contains_spatial_unit ba_s 
+    on sv_a.spatial_unit_id= ba_s.spatial_unit_id
+  where sv_a.type_code = ''officialArea'' and ba_s.ba_unit_id= ba.id))/coalesce(ba_a.size,0.001)) < 0.001 as vl
+FROM administrative.ba_unit ba left join administrative.ba_unit_area ba_a 
+  on ba.id= ba_a.ba_unit_id and ba_a.type_code = ''officialArea''
+WHERE ba.id = #{id}
+AND ba.type_code != ''strataUnit''');
+INSERT INTO br_definition (br_id, active_from, active_until, body) VALUES ('newtitle-br22-check-different-owners', '2012-11-22', 'infinity', 'WITH new_property_owner AS (
+	SELECT  COALESCE(name, '''') || '' '' || COALESCE(last_name, '''') AS newOwnerStr FROM party.party po
+		INNER JOIN administrative.party_for_rrr pfr1 ON (po.id = pfr1.party_id)
+		INNER JOIN administrative.rrr rr1 ON (pfr1.rrr_id = rr1.id)
+	WHERE rr1.ba_unit_id = #{id}),
+	
+  prior_property_owner AS (
+	SELECT  COALESCE(name, '''') || '' '' || COALESCE(last_name, '''') AS priorOwnerStr FROM party.party pn
+		INNER JOIN administrative.party_for_rrr pfr2 ON (pn.id = pfr2.party_id)
+		INNER JOIN administrative.rrr rr2 ON (pfr2.rrr_id = rr2.id)
+		INNER JOIN administrative.required_relationship_baunit rfb ON (rr2.ba_unit_id = rfb.from_ba_unit_id)
+	WHERE	rfb.to_ba_unit_id = #{id}
+	LIMIT 1	)
+
+SELECT 	CASE 	WHEN (SELECT (COUNT(*) = 0) FROM prior_property_owner) THEN NULL
+        WHEN (SELECT type_code FROM administrative.ba_unit WHERE id = #{id}) = ''strataUnit'' THEN NULL
+		WHEN (SELECT (COUNT(*) != 0) FROM new_property_owner npo WHERE compare_strings((SELECT priorOwnerStr FROM prior_property_owner), npo.newOwnerStr)) THEN TRUE
+		ELSE FALSE
+	END AS vl
 ORDER BY vl
 LIMIT 1');
-INSERT INTO br_definition (br_id, active_from, active_until, body) VALUES ('generate-baunit-nr', '2012-11-22', 'infinity', 'SELECT CASE WHEN CAST(#{cadastreObjectId} AS VARCHAR(40)) IS NOT NULL
-	THEN (SELECT (CASE WHEN co.type_code = ''parcel'' THEN regexp_replace(co.name_firstpart, ''\D*|/.*'',  '''', ''g'') ELSE co.name_firstpart END) 
-	        || ''/'' || regexp_replace(co.name_lastpart, ''[\s|L|l]$'',  '''') FROM cadastre.cadastre_object co WHERE id = #{cadastreObjectId})
-	ELSE (SELECT to_char(now(), ''yymm'') || trim(to_char(nextval(''administrative.ba_unit_first_name_part_seq''), ''0000''))
-			|| ''/200000'') END AS vl');
 
 
 ALTER TABLE br_definition ENABLE TRIGGER ALL;
@@ -943,6 +1070,13 @@ INSERT INTO br_validation (id, br_id, target_code, target_application_moment, ta
 INSERT INTO br_validation (id, br_id, target_code, target_application_moment, target_service_moment, target_reg_moment, target_request_type_code, target_rrr_type_code, severity_code, order_of_execution) VALUES ('d4b5b378-3445-11e2-aa70-cb542fdedec5', 'application-br3-check-properties-are-not-historic', 'application', 'validate', NULL, NULL, NULL, NULL, 'medium', 180);
 INSERT INTO br_validation (id, br_id, target_code, target_application_moment, target_service_moment, target_reg_moment, target_request_type_code, target_rrr_type_code, severity_code, order_of_execution) VALUES ('d4b5b378-3445-11e2-b1ae-6f50b3d171fc', 'application-br1-check-required-sources-are-present', 'application', 'validate', NULL, NULL, NULL, NULL, 'medium', 210);
 INSERT INTO br_validation (id, br_id, target_code, target_application_moment, target_service_moment, target_reg_moment, target_request_type_code, target_rrr_type_code, severity_code, order_of_execution) VALUES ('d4b0f0b8-3445-11e2-9e3f-bb89f8a4b767', 'application-br8-check-has-services', 'application', 'validate', NULL, NULL, NULL, NULL, 'medium', 260);
+INSERT INTO br_validation (id, br_id, target_code, target_application_moment, target_service_moment, target_reg_moment, target_request_type_code, target_rrr_type_code, severity_code, order_of_execution) VALUES ('ab9ef18e-d188-11e3-ad63-3703adb7baa2', 'unit-plan-underlying-parcel-missing', 'unit_plan', NULL, NULL, 'pending', 'unitPlan', NULL, 'medium', 700);
+INSERT INTO br_validation (id, br_id, target_code, target_application_moment, target_service_moment, target_reg_moment, target_request_type_code, target_rrr_type_code, severity_code, order_of_execution) VALUES ('aba02a0e-d188-11e3-8524-53629ba6f53a', 'unit-plan-underlying-parcel-missing', 'unit_plan', NULL, NULL, 'current', 'unitPlan', NULL, 'critical', 750);
+INSERT INTO br_validation (id, br_id, target_code, target_application_moment, target_service_moment, target_reg_moment, target_request_type_code, target_rrr_type_code, severity_code, order_of_execution) VALUES ('aba09f3e-d188-11e3-af05-0f18ba7d1eb6', 'unit-plan-parcel-area-mismatch', 'unit_plan', NULL, NULL, 'pending', 'unitPlan', NULL, 'medium', 710);
+INSERT INTO br_validation (id, br_id, target_code, target_application_moment, target_service_moment, target_reg_moment, target_request_type_code, target_rrr_type_code, severity_code, order_of_execution) VALUES ('aba0ed5e-d188-11e3-977a-03c40ecad7b3', 'unit-plan-parcel-area-mismatch', 'unit_plan', NULL, NULL, 'current', 'unitPlan', NULL, 'medium', 760);
+INSERT INTO br_validation (id, br_id, target_code, target_application_moment, target_service_moment, target_reg_moment, target_request_type_code, target_rrr_type_code, severity_code, order_of_execution) VALUES ('aba1628e-d188-11e3-92c9-bf7f653b35da', 'unit-plan-unlinked-accessory-units', 'service', NULL, 'complete', NULL, 'newUnitTitle', NULL, 'medium', 720);
+INSERT INTO br_validation (id, br_id, target_code, target_application_moment, target_service_moment, target_reg_moment, target_request_type_code, target_rrr_type_code, severity_code, order_of_execution) VALUES ('aba225e8-d188-11e3-b336-1faeb09df1d0', 'unit-plan-missing-entitlement', 'service', NULL, 'complete', NULL, 'newUnitTitle', NULL, 'critical', 730);
+INSERT INTO br_validation (id, br_id, target_code, target_application_moment, target_service_moment, target_reg_moment, target_request_type_code, target_rrr_type_code, severity_code, order_of_execution) VALUES ('aba29b18-d188-11e3-a690-cfe5a7231b64', 'unit-plan-title-area-mismatch', 'service', NULL, 'complete', NULL, 'newUnitTitle', NULL, 'critical', 740);
 
 
 ALTER TABLE br_validation ENABLE TRIGGER ALL;

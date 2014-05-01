@@ -113,7 +113,7 @@ echo ### Dumping administrative tables... >> %EXTRACT_LOG% 2>&1
     -t administrative.ba_unit_contains_spatial_unit -t administrative.ba_unit_as_party ^
     -t administrative.ba_unit_target ^
     -t administrative.mortgage_isbased_in_rrr -t certificate_print ^
-	-f "%data_path%07_administrative.sql" %db_name% >> %EXTRACT_LOG% 2>&1
+	-f "%data_path%07_administration.sql" %db_name% >> %EXTRACT_LOG% 2>&1
 	
 echo Dumping application tables...
 echo ### Dumping application tables... >> %EXTRACT_LOG% 2>&1
