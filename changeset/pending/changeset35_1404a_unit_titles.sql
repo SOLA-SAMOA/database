@@ -287,15 +287,15 @@ INSERT INTO system.br_validation(br_id, target_code, target_reg_moment, target_r
 SELECT 'unit-plan-underlying-parcel-missing', 'unit_plan', 'current', 'unitPlan', 'critical', 750
 WHERE NOT EXISTS (SELECT br_id FROM system.br_validation WHERE br_id = 'unit-plan-underlying-parcel-missing' AND target_reg_moment = 'current');
 
--- unit-plan-area-mismatch
+-- unit-plan-parcel-area-mismatch
 INSERT INTO system.br(id, display_name, technical_type_code, feedback, technical_description)
-SELECT 'unit-plan-area-mismatch', 'unit-plan-area-mismatch', 'sql',
+SELECT 'unit-plan-parcel-area-mismatch', 'unit-plan-parcel-area-mismatch', 'sql',
          'The total area for the unit parcels and the common property should match the official area of the underlying parcels', '#{id}(transaction_id) is requested'
-WHERE NOT EXISTS (SELECT id FROM system.br WHERE id = 'unit-plan-area-mismatch');
+WHERE NOT EXISTS (SELECT id FROM system.br WHERE id = 'unit-plan-parcel-area-mismatch');
   
 INSERT INTO system.br_definition(
             br_id, active_from, active_until, body)
-SELECT 'unit-plan-area-mismatch', '10 APR 2014', 'infinity',
+SELECT 'unit-plan-parcel-area-mismatch', '10 APR 2014', 'infinity',
 'WITH unit_par AS (
 SELECT SUM(sva.size) AS area
 FROM   transaction.transaction t,
@@ -341,15 +341,17 @@ AND    sva.type_code = ''officialArea'')
 SELECT (CASE WHEN COUNT(under_par.area) = 0 THEN SUM(unit_par.area) = SUM(under_prop.area)
             ELSE SUM(unit_par.area) = SUM(under_par.area) END) AS vl
 FROM  unit_par, under_par, under_prop'
-WHERE NOT EXISTS (SELECT br_id FROM system.br_definition WHERE br_id = 'unit-plan-area-mismatch');
+WHERE NOT EXISTS (SELECT br_id FROM system.br_definition WHERE br_id = 'unit-plan-parcel-area-mismatch');
 
 INSERT INTO system.br_validation(br_id, target_code, target_reg_moment, target_request_type_code, severity_code, order_of_execution)
-SELECT 'unit-plan-area-mismatch', 'unit_plan', 'pending', 'unitPlan', 'medium', 710
-WHERE NOT EXISTS (SELECT br_id FROM system.br_validation WHERE br_id = 'unit-plan-area-mismatch' AND target_reg_moment = 'pending');
+SELECT 'unit-plan-parcel-area-mismatch', 'unit_plan', 'pending', 'unitPlan', 'medium', 710
+WHERE NOT EXISTS (SELECT br_id FROM system.br_validation WHERE br_id = 'unit-plan-parcel-area-mismatch' AND target_reg_moment = 'pending');
 
 INSERT INTO system.br_validation(br_id, target_code, target_reg_moment, target_request_type_code, severity_code, order_of_execution)
-SELECT 'unit-plan-area-mismatch', 'unit_plan', 'current', 'unitPlan', 'medium', 760
-WHERE NOT EXISTS (SELECT br_id FROM system.br_validation WHERE br_id = 'unit-plan-area-mismatch' AND target_reg_moment = 'current');
+SELECT 'unit-plan-parcel-area-mismatch', 'unit_plan', 'current', 'unitPlan', 'medium', 760
+WHERE NOT EXISTS (SELECT br_id FROM system.br_validation WHERE br_id = 'unit-plan-parcel-area-mismatch' AND target_reg_moment = 'current');
+
+
 
 -- unit-plan-unlinked-accessory-units
 INSERT INTO system.br(id, display_name, technical_type_code, feedback, technical_description)
@@ -409,6 +411,103 @@ WHERE NOT EXISTS (SELECT br_id FROM system.br_definition WHERE br_id = 'unit-pla
 INSERT INTO system.br_validation(br_id, target_code, target_service_moment, target_request_type_code, severity_code, order_of_execution)
 SELECT 'unit-plan-missing-entitlement', 'service', 'complete', 'newUnitTitle', 'critical', 730
 WHERE NOT EXISTS (SELECT br_id FROM system.br_validation WHERE br_id = 'unit-plan-missing-entitlement' AND target_service_moment = 'complete');
+
+-- unit-plan-title-area-mismatch
+INSERT INTO system.br(id, display_name, technical_type_code, feedback, technical_description)
+SELECT 'unit-plan-title-area-mismatch', 'unit-plan-title-area-mismatch', 'sql',
+         'The total area for the unit titles and the common property title should match the official area of the underlying property', '#{id}(service_id) is requested'
+WHERE NOT EXISTS (SELECT id FROM system.br WHERE id = 'unit-plan-title-area-mismatch');
+  
+INSERT INTO system.br_definition(
+            br_id, active_from, active_until, body)
+SELECT 'unit-plan-title-area-mismatch', '10 APR 2014', 'infinity',
+'WITH unit_title AS (
+SELECT SUM(ba.size) AS area
+FROM   transaction.transaction t,
+       cadastre.spatial_unit_in_group sig,
+       cadastre.cadastre_object co,
+       administrative.ba_unit_contains_spatial_unit bas,
+	   administrative.ba_unit b,
+	   administrative.ba_unit_area ba
+WHERE  t.from_service_id = #{id}
+AND    sig.spatial_unit_group_id = t.spatial_unit_group_id
+AND    co.id = sig.spatial_unit_id
+AND    co.type_code IN (''principalUnit'', ''commonProperty'')
+AND    co.status_code = ''current''
+AND    bas.spatial_unit_id = co.id
+AND    b.id = bas.ba_unit_id
+AND    b.status_code != ''historic''
+AND    ba.ba_unit_id = b.id
+AND    ba.type_code = ''officialArea''),
+    under_prop AS (
+SELECT SUM(sva.size) AS area
+FROM   transaction.transaction t,
+       cadastre.spatial_unit_in_group sig,
+       cadastre.cadastre_object co,
+       administrative.ba_unit_contains_spatial_unit bas,
+	   administrative.ba_unit b,
+       administrative.ba_unit_area ba
+WHERE  t.id = #{id}
+AND    sig.spatial_unit_group_id = t.spatial_unit_group_id
+AND    co.id = sig.spatial_unit_id
+AND    co.type_code = ''parcel''
+AND    co.status_code = ''current''
+AND    bas.spatial_unit_id = co.id
+AND    b.id = bas.ba_unit_id
+AND    b.status_code != ''historic''
+AND    ba.ba_unit_id = b.id
+AND    ba.type_code = ''officialArea'')
+SELECT SUM(unit_title.area) = SUM(under_prop.area) AS vl
+FROM  unit_title, under_prop'
+WHERE NOT EXISTS (SELECT br_id FROM system.br_definition WHERE br_id = 'unit-plan-title-area-mismatch');
+
+INSERT INTO system.br_validation(br_id, target_code, target_service_moment, target_request_type_code, severity_code, order_of_execution)
+SELECT 'unit-plan-title-area-mismatch', 'service', 'complete', 'newUnitTitle', 'critical', 740
+WHERE NOT EXISTS (SELECT br_id FROM system.br_validation WHERE br_id = 'unit-plan-title-area-mismatch' AND target_service_moment = 'complete');
+
+
+-- ba_unit-spatial_unit-area-comparison
+-- Modify query so that strata units are excluded from the validation
+UPDATE system.br_definition
+SET body = 
+'SELECT (abs(coalesce(ba_a.size,0.001) - 
+ (select coalesce(sum(sv_a.size), 0.001) 
+  from cadastre.spatial_value_area sv_a inner join administrative.ba_unit_contains_spatial_unit ba_s 
+    on sv_a.spatial_unit_id= ba_s.spatial_unit_id
+  where sv_a.type_code = ''officialArea'' and ba_s.ba_unit_id= ba.id))/coalesce(ba_a.size,0.001)) < 0.001 as vl
+FROM administrative.ba_unit ba left join administrative.ba_unit_area ba_a 
+  on ba.id= ba_a.ba_unit_id and ba_a.type_code = ''officialArea''
+WHERE ba.id = #{id}
+AND ba.type_code != ''strataUnit'''
+WHERE br_id = 'ba_unit-spatial_unit-area-comparison'; 
+
+-- newtitle-br22-check-different-owners
+-- Modify query so that strata units are excluded from the validation
+UPDATE system.br_definition
+SET body = 
+'WITH new_property_owner AS (
+	SELECT  COALESCE(name, '''') || '' '' || COALESCE(last_name, '''') AS newOwnerStr FROM party.party po
+		INNER JOIN administrative.party_for_rrr pfr1 ON (po.id = pfr1.party_id)
+		INNER JOIN administrative.rrr rr1 ON (pfr1.rrr_id = rr1.id)
+	WHERE rr1.ba_unit_id = #{id}),
+	
+  prior_property_owner AS (
+	SELECT  COALESCE(name, '''') || '' '' || COALESCE(last_name, '''') AS priorOwnerStr FROM party.party pn
+		INNER JOIN administrative.party_for_rrr pfr2 ON (pn.id = pfr2.party_id)
+		INNER JOIN administrative.rrr rr2 ON (pfr2.rrr_id = rr2.id)
+		INNER JOIN administrative.required_relationship_baunit rfb ON (rr2.ba_unit_id = rfb.from_ba_unit_id)
+	WHERE	rfb.to_ba_unit_id = #{id}
+	LIMIT 1	)
+
+SELECT 	CASE 	WHEN (SELECT (COUNT(*) = 0) FROM prior_property_owner) THEN NULL
+        WHEN (SELECT type_code FROM administrative.ba_unit WHERE id = #{id}) = ''strataUnit'' THEN NULL
+		WHEN (SELECT (COUNT(*) != 0) FROM new_property_owner npo WHERE compare_strings((SELECT priorOwnerStr FROM prior_property_owner), npo.newOwnerStr)) THEN TRUE
+		ELSE FALSE
+	END AS vl
+ORDER BY vl
+LIMIT 1'
+WHERE br_id = 'newtitle-br22-check-different-owners'; 
+
 
 
 ALTER TABLE administrative.rrr
