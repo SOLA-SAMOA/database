@@ -740,6 +740,7 @@ INSERT INTO approle (code, display_value, status, description) VALUES ('varyComm
 INSERT INTO approle (code, display_value, status, description) VALUES ('cancelUnitPlan', 'Cancel Unit Plan::::SAMOAN', 'c', NULL);
 INSERT INTO approle (code, display_value, status, description) VALUES ('changeBodyCorp', 'Change Body Corporate::::SAMOAN', 'c', NULL);
 INSERT INTO approle (code, display_value, status, description) VALUES ('StrataUnitCreate', 'Create Strata Property', 'c', NULL);
+INSERT INTO approle (code, display_value, status, description) VALUES ('ChangeParcelAttrTool', 'Change Parcel Attribute Tool', 'c', 'Allows user to change the name or status of a parcel.');
 
 
 ALTER TABLE approle ENABLE TRIGGER ALL;

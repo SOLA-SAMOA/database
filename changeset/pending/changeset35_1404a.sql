@@ -477,6 +477,8 @@ ALTER FUNCTION application.get_work_summary(date, date)
 COMMENT ON FUNCTION application.get_work_summary(date, date) IS 'Returns a summary of the services processed for a specified reporting period. Used by the Lodgement Statistics Report.';
 
 
+DROP FUNCTION IF EXISTS application.get_estate_type(IN service_id VARCHAR(20), IN request_type VARCHAR(20));
+
 CREATE OR REPLACE FUNCTION application.get_estate_type(IN service_id VARCHAR(20), IN request_type VARCHAR(20))
   RETURNS VARCHAR(20) AS
 $BODY$ 
@@ -507,3 +509,79 @@ BEGIN
 END; $BODY$
 LANGUAGE plpgsql VOLATILE;
 COMMENT ON FUNCTION application.get_estate_type(VARCHAR(20), VARCHAR(20)) IS 'Returns the estate type of the property related to the service. Only tested with Record Lease and Record Sublease services. Used by the Lodgement Statistics Report.';
+
+
+
+-- Ticket #69 change_parcel_name procedure.
+INSERT INTO system.approle (code, display_value, status, description)
+SELECT 'ChangeParcelAttrTool', 'Change Parcel Attribute Tool','c', 'Allows user to change the name or status of a parcel.'
+WHERE NOT EXISTS (SELECT code FROM system.approle WHERE code = 'ChangeParcelAttrTool');
+
+INSERT INTO system.approle_appgroup (approle_code, appgroup_id) 
+    (SELECT 'ChangeParcelAttrTool', id FROM system.appgroup ag WHERE "name" = 'Quality Assurance'
+     AND NOT EXISTS (SELECT approle_code FROM system.approle_appgroup 
+	                 WHERE  approle_code = 'ChangeParcelAttrTool'
+					 AND    appgroup_id = ag.id));
+
+DROP FUNCTION IF EXISTS cadastre.change_parcel_name(IN parcel_id CHARACTER VARYING, IN part1 CHARACTER VARYING, 
+                                                    IN part2 CHARACTER VARYING, IN user_name CHARACTER VARYING);
+
+CREATE OR REPLACE FUNCTION cadastre.change_parcel_name(IN parcel_id CHARACTER VARYING, IN part1 CHARACTER VARYING, 
+                                                       IN part2 CHARACTER VARYING, IN user_name CHARACTER VARYING)
+  RETURNS VOID AS
+$BODY$  
+BEGIN
+
+    -- First remove the LRS parcel of the same name if one exists. 
+	UPDATE cadastre.cadastre_object
+	SET   change_user = user_name
+	WHERE name_firstpart = part1
+	AND   name_lastpart =  part2
+	AND   source_reference = 'LRS';
+
+	UPDATE administrative.ba_unit_contains_spatial_unit 
+	SET change_user = user_name
+	WHERE spatial_unit_id IN (
+	   SELECT co.id
+	   FROM   cadastre.cadastre_object co
+	   WHERE name_firstpart = part1
+	   AND   name_lastpart =  part2
+	   AND   source_reference = 'LRS')
+	OR spatial_unit_id = parcel_id;
+
+	-- Disassociation the LRS parcel as well as the parcel that
+	-- will get the name change from any BA Units. 
+	DELETE FROM administrative.ba_unit_contains_spatial_unit 
+	WHERE spatial_unit_id IN (
+	   SELECT co.id
+	   FROM   cadastre.cadastre_object co
+	   WHERE name_firstpart = part1
+	   AND   name_lastpart =  part2
+	   AND   source_reference = 'LRS')
+	OR spatial_unit_id = parcel_id;
+
+	DELETE FROM cadastre.cadastre_object co
+	WHERE  co.name_firstpart = part1
+	AND    co.name_lastpart = part2
+	AND    co.source_reference = 'LRS';
+
+	-- Change the name of the parcel and link it to the ba_unit if a ba_unit
+	-- exists with a matching name. 
+	UPDATE cadastre.cadastre_object co
+	SET    name_firstpart = part1,
+	       name_lastpart = part2,
+		   change_user = user_name
+	WHERE  co.id = parcel_id;
+
+	INSERT INTO administrative.ba_unit_contains_spatial_unit (ba_unit_id, spatial_unit_id, change_user)
+	SELECT ba.id, co.id, user_name
+	FROM   administrative.ba_unit ba,
+		   cadastre.cadastre_object co
+	WHERE  ba.name_firstpart = part1
+	AND    ba.name_lastpart = part2
+	AND    co.name_firstpart = ba.name_firstpart
+	AND    co.name_lastpart = ba.name_lastpart;
+   
+END; $BODY$
+LANGUAGE plpgsql VOLATILE;
+COMMENT ON FUNCTION cadastre.change_parcel_name(CHARACTER VARYING, CHARACTER VARYING, CHARACTER VARYING, CHARACTER VARYING) IS 'Procedure to correct the name of a cadastre object that was incorrectly recorded in DCDB. During the LRS migration, non spatial LRS parcels were created. The procedure will remove any LRS parcel matching the new name as well as link the parcel to the BA Unit matching the new name.';
