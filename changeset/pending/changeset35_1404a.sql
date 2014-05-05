@@ -532,6 +532,10 @@ CREATE OR REPLACE FUNCTION cadastre.change_parcel_name(IN parcel_id CHARACTER VA
 $BODY$  
 BEGIN
 
+    IF parcel_id IS NULL THEN
+	   RETURN; 
+	END IF;
+
     -- First remove the LRS parcel of the same name if one exists. 
 	UPDATE cadastre.cadastre_object
 	SET   change_user = user_name
@@ -577,7 +581,7 @@ BEGIN
 	SELECT ba.id, co.id, user_name
 	FROM   administrative.ba_unit ba,
 		   cadastre.cadastre_object co
-	WHERE  ba.name_firstpart = part1
+	WHERE  ba.name_firstpart = regexp_replace(part1, '\D', '', 'g') -- Remove the LOT part from the name
 	AND    ba.name_lastpart = part2
 	AND    co.name_firstpart = ba.name_firstpart
 	AND    co.name_lastpart = ba.name_lastpart;
