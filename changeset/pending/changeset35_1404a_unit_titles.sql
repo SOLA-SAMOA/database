@@ -56,7 +56,9 @@ WHERE NOT EXISTS (SELECT code FROM source.administrative_source_type WHERE code 
 INSERT INTO source.administrative_source_type (code,display_value,status,is_for_registration)
 SELECT 'bodyCorpRules','Body Corporate Rules::::SAMOAN','c','FALSE'
 WHERE NOT EXISTS (SELECT code FROM source.administrative_source_type WHERE code = 'bodyCorpRules');
-
+INSERT INTO source.administrative_source_type (code,display_value,status,is_for_registration)
+SELECT 'unitEntitlements','Schedule of Unit Entitlements::::SAMOAN','c','FALSE'
+WHERE NOT EXISTS (SELECT code FROM source.administrative_source_type WHERE code = 'unitEntitlements');
 
 -- Services
 INSERT INTO application.request_type(code, request_category_code, display_value, 
@@ -84,7 +86,7 @@ INSERT INTO application.request_type(code, request_category_code, display_value,
             status, nr_days_to_complete, base_fee, area_base_fee, value_base_fee, 
             nr_properties_required, notation_template, rrr_type_code, type_action_code, 
             description)
-SELECT 'cancelUnitPlan','registrationServices','Cancel Unit Plan::::SAMOAN','c',5,100.00,0.00,0.00,1, NULL,NULL,'cancel','Unit Plan Cancellation'
+SELECT 'cancelUnitPlan','registrationServices','Cancel Unit Titles::::SAMOAN','c',5,100.00,0.00,0.00,1, NULL,NULL,'cancel','Unit Title Cancellation'
 WHERE NOT EXISTS (SELECT code FROM application.request_type WHERE code = 'cancelUnitPlan');
 
 INSERT INTO application.request_type(code, request_category_code, display_value, 
@@ -93,6 +95,29 @@ INSERT INTO application.request_type(code, request_category_code, display_value,
             description)
 SELECT 'changeBodyCorp','registrationServices','Change Body Corporate::::SAMOAN','c',5,100.00,0.00,0.00,1, 'Change Body Corporate Rules / Change Address for Service to <address>','commonProperty','vary','Variation to Body Corporate'
 WHERE NOT EXISTS (SELECT code FROM application.request_type WHERE code = 'changeBodyCorp');
+
+-- Link document types to the request types
+INSERT INTO application.request_type_requires_source_type (request_type_code, source_type_code)
+SELECT 'unitPlan','unitPlan'
+WHERE NOT EXISTS (SELECT request_type_code FROM application.request_type_requires_source_type 
+                  WHERE  request_type_code = 'unitPlan'
+				  AND    source_type_code =  'unitPlan');
+				  
+INSERT INTO application.request_type_requires_source_type (request_type_code, source_type_code)
+SELECT 'newUnitTitle','unitPlan'
+WHERE NOT EXISTS (SELECT request_type_code FROM application.request_type_requires_source_type 
+                  WHERE  request_type_code = 'newUnitTitle'
+				  AND    source_type_code =  'unitPlan');
+INSERT INTO application.request_type_requires_source_type (request_type_code, source_type_code)
+SELECT 'newUnitTitle','bodyCorpRules'
+WHERE NOT EXISTS (SELECT request_type_code FROM application.request_type_requires_source_type 
+                  WHERE  request_type_code = 'newUnitTitle'
+				  AND    source_type_code =  'bodyCorpRules');
+INSERT INTO application.request_type_requires_source_type (request_type_code, source_type_code)
+SELECT 'newUnitTitle','unitEntitlements'
+WHERE NOT EXISTS (SELECT request_type_code FROM application.request_type_requires_source_type 
+                  WHERE  request_type_code = 'newUnitTitle'
+				  AND    source_type_code =  'unitEntitlements');
 
 
 -- Add User Rights for the new Services
