@@ -34,6 +34,10 @@ INSERT INTO request_type_requires_source_type (source_type_code, request_type_co
 INSERT INTO request_type_requires_source_type (source_type_code, request_type_code) VALUES ('powerOfAttorney', 'regnPowerOfAttorney');
 INSERT INTO request_type_requires_source_type (source_type_code, request_type_code) VALUES ('standardDocument', 'regnStandardDocument');
 INSERT INTO request_type_requires_source_type (source_type_code, request_type_code) VALUES ('cadastralSurvey', 'planNoCoords');
+INSERT INTO request_type_requires_source_type (source_type_code, request_type_code) VALUES ('unitPlan', 'unitPlan');
+INSERT INTO request_type_requires_source_type (source_type_code, request_type_code) VALUES ('unitPlan', 'newUnitTitle');
+INSERT INTO request_type_requires_source_type (source_type_code, request_type_code) VALUES ('bodyCorpRules', 'newUnitTitle');
+INSERT INTO request_type_requires_source_type (source_type_code, request_type_code) VALUES ('unitEntitlements', 'newUnitTitle');
 
 
 ALTER TABLE request_type_requires_source_type ENABLE TRIGGER ALL;

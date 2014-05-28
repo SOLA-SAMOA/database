@@ -811,32 +811,6 @@ INSERT INTO br_definition (br_id, active_from, active_until, body) VALUES ('gene
 	        || ''/'' || regexp_replace(co.name_lastpart, ''[\s|L|l]$'',  '''') FROM cadastre.cadastre_object co WHERE id = #{cadastreObjectId})
 	ELSE (SELECT to_char(now(), ''yymm'') || trim(to_char(nextval(''administrative.ba_unit_first_name_part_seq''), ''0000''))
 			|| ''/200000'') END AS vl');
-INSERT INTO br_definition (br_id, active_from, active_until, body) VALUES ('generate-application-nr', '2012-11-22', 'infinity', '
-WITH unit_plan_nr AS 
-  (SELECT split_part(app.nr, ''/'', 1) AS app_nr, (COUNT(ser.id) + 1) AS suffix
-   FROM administrative.ba_unit_contains_spatial_unit bas,
-        cadastre.spatial_unit_in_group sug,
-        transaction.transaction trans, 
-        application.service ser,
-        application.application app
-   WHERE bas.ba_unit_id = #{baUnitId}
-   AND   sug.spatial_unit_id = bas.spatial_unit_id
-   AND   trans.spatial_unit_group_id = sug.spatial_unit_group_id
-   AND   ser.id = trans.from_service_id
-   AND   ser.request_type_code = ''unitPlan''
-   AND   #{requestTypeCode} = ser.request_type_code
-   AND   app.id = ser.application_id
-   GROUP BY app_nr)
-SELECT CASE (SELECT cat.code FROM application.request_category_type cat, application.request_type req WHERE req.code = #{requestTypeCode} AND cat.code = req.request_category_code) 
-	WHEN ''cadastralServices'' THEN
-	     (SELECT CASE WHEN (SELECT COUNT(app_nr) FROM unit_plan_nr) = 0 AND #{requestTypeCode} IN (''cadastreChange'', ''planNoCoords'', ''unitPlan'') THEN
-	                        trim(to_char(nextval(''application.survey_plan_nr_seq''), ''00000''))
-					  WHEN (SELECT COUNT(app_nr) FROM unit_plan_nr) = 0 AND #{requestTypeCode} = ''redefineCadastre'' THEN
-					        trim(to_char(nextval(''application.information_nr_seq''), ''000000''))
-		              ELSE (SELECT app_nr || ''/'' || suffix FROM unit_plan_nr)  END)
-	WHEN ''registrationServices'' THEN trim(to_char(nextval(''application.dealing_nr_seq''),''00000'')) 
-	WHEN ''nonRegServices'' THEN trim(to_char(nextval(''application.non_register_nr_seq''),''00000'')) 
-	ELSE trim(to_char(nextval(''application.information_nr_seq''), ''000000'')) END AS vl');
 INSERT INTO br_definition (br_id, active_from, active_until, body) VALUES ('unit-plan-underlying-parcel-missing', '2014-04-10', 'infinity', 'SELECT count(*) > 0 as vl 
 FROM   transaction.transaction t,
        cadastre.spatial_unit_in_group sig,
@@ -958,6 +932,32 @@ AND    ba.ba_unit_id = b.id
 AND    ba.type_code = ''officialArea'')
 SELECT SUM(unit_title.area) = SUM(under_prop.area) AS vl
 FROM  unit_title, under_prop');
+INSERT INTO br_definition (br_id, active_from, active_until, body) VALUES ('generate-application-nr', '2012-11-22', 'infinity', '
+WITH unit_plan_nr AS 
+  (SELECT split_part(app.nr, ''/'', 1) AS app_nr, (COUNT(ser.id) + 1) AS suffix
+   FROM administrative.ba_unit_contains_spatial_unit bas,
+        cadastre.spatial_unit_in_group sug,
+        transaction.transaction trans, 
+        application.service ser,
+        application.application app
+   WHERE bas.ba_unit_id = #{baUnitId}
+   AND   sug.spatial_unit_id = bas.spatial_unit_id
+   AND   trans.spatial_unit_group_id = sug.spatial_unit_group_id
+   AND   ser.id = trans.from_service_id
+   AND   ser.request_type_code = ''unitPlan''
+   AND   #{requestTypeCode} = ser.request_type_code
+   AND   app.id = ser.application_id
+   GROUP BY app_nr)
+SELECT CASE (SELECT cat.code FROM application.request_category_type cat, application.request_type req WHERE req.code = #{requestTypeCode} AND cat.code = req.request_category_code) 
+	WHEN ''cadastralServices'' THEN
+	     (SELECT CASE WHEN (SELECT COUNT(app_nr) FROM unit_plan_nr) = 0 AND #{requestTypeCode} IN (''cadastreChange'', ''planNoCoords'', ''unitPlan'') THEN
+	                        trim(to_char(nextval(''application.survey_plan_nr_seq''), ''00000''))
+					  WHEN (SELECT COUNT(app_nr) FROM unit_plan_nr) = 0 AND #{requestTypeCode} = ''redefineCadastre'' THEN
+					        trim(to_char(nextval(''application.information_nr_seq''), ''000000''))
+		              ELSE (SELECT app_nr || ''/'' || suffix FROM unit_plan_nr)  END)
+	WHEN ''registrationServices'' THEN trim(to_char(nextval(''application.dealing_nr_seq''),''00000'')) 
+	WHEN ''nonRegServices'' THEN trim(to_char(nextval(''application.non_register_nr_seq''),''00000'')) 
+	ELSE trim(to_char(nextval(''application.information_nr_seq''), ''000000'')) END AS vl');
 INSERT INTO br_definition (br_id, active_from, active_until, body) VALUES ('ba_unit-spatial_unit-area-comparison', '2012-11-22', 'infinity', 'SELECT (abs(coalesce(ba_a.size,0.001) - 
  (select coalesce(sum(sv_a.size), 0.001) 
   from cadastre.spatial_value_area sv_a inner join administrative.ba_unit_contains_spatial_unit ba_s 
