@@ -46,8 +46,8 @@ SELECT 'addressForService', 'responsibilities', 'Address for Service::::SAMOAN',
 WHERE NOT EXISTS (SELECT code FROM administrative.rrr_type WHERE code = 'addressForService');
 
 INSERT INTO administrative.rrr_type(code, rrr_group_type_code, display_value, is_primary, share_check, party_required, status, description)
-    VALUES ('commonProperty', 'system', 'Common Property', FALSE, FALSE, FALSE, 'x', 'System RRR type used by SOLA to represent the unit development body corporate responsibilities');
-
+SELECT 'commonProperty', 'system', 'Common Property', FALSE, FALSE, FALSE, 'x', 'System RRR type used by SOLA to represent the unit development body corporate responsibilities.'
+WHERE NOT EXISTS (SELECT code FROM administrative.rrr_type WHERE code = 'commonProperty');
 	
 -- Document Types
 INSERT INTO source.administrative_source_type (code,display_value,status,is_for_registration)
@@ -65,35 +65,28 @@ INSERT INTO application.request_type(code, request_category_code, display_value,
             status, nr_days_to_complete, base_fee, area_base_fee, value_base_fee, 
             nr_properties_required, notation_template, rrr_type_code, type_action_code, 
             description)
-SELECT 'unitPlan','cadastralServices','Record Unit Plan::::SAMOAN','c',30,23.00,0.00,11.50,1,NULL,NULL,NULL,'Unit Plan'
+SELECT 'unitPlan','cadastralServices','Record Unit Plan::::SAMOAN','x',30,23.00,0.00,11.50,1,NULL,NULL,NULL,'Unit Plan'
 WHERE NOT EXISTS (SELECT code FROM application.request_type WHERE code = 'unitPlan');
 	
 INSERT INTO application.request_type(code, request_category_code, display_value, 
             status, nr_days_to_complete, base_fee, area_base_fee, value_base_fee, 
             nr_properties_required, notation_template, rrr_type_code, type_action_code, 
             description)
-SELECT 'newUnitTitle','registrationServices','Create Unit Titles::::SAMOAN','c',5,0.00,0.00,0.00,1, 'New <estate type> unit title',NULL,NULL,'Create Unit Titles'
+SELECT 'newUnitTitle','registrationServices','Create Unit Titles::::SAMOAN','x',5,0.00,0.00,0.00,1, 'New <estate type> unit title',NULL,NULL,'Create Unit Titles'
 WHERE NOT EXISTS (SELECT code FROM application.request_type WHERE code = 'newUnitTitle');
-
-INSERT INTO application.request_type(code, request_category_code, display_value, 
-            status, nr_days_to_complete, base_fee, area_base_fee, value_base_fee, 
-            nr_properties_required, notation_template, rrr_type_code, type_action_code, 
-            description)
-SELECT 'varyCommonProperty','registrationServices','Change Common Property::::SAMOAN','c',5,100.00,0.00,0.00,1,NULL,NULL,NULL,'Vary Common Property'
-WHERE NOT EXISTS (SELECT code FROM application.request_type WHERE code = 'varyCommonProperty');
 	
 INSERT INTO application.request_type(code, request_category_code, display_value, 
             status, nr_days_to_complete, base_fee, area_base_fee, value_base_fee, 
             nr_properties_required, notation_template, rrr_type_code, type_action_code, 
             description)
-SELECT 'cancelUnitPlan','registrationServices','Cancel Unit Titles::::SAMOAN','c',5,100.00,0.00,0.00,1, NULL,NULL,'cancel','Unit Title Cancellation'
+SELECT 'cancelUnitPlan','registrationServices','Cancel Unit Titles::::SAMOAN','x',5,100.00,0.00,0.00,1, NULL,NULL,'cancel','Unit Title Cancellation'
 WHERE NOT EXISTS (SELECT code FROM application.request_type WHERE code = 'cancelUnitPlan');
 
 INSERT INTO application.request_type(code, request_category_code, display_value, 
             status, nr_days_to_complete, base_fee, area_base_fee, value_base_fee, 
             nr_properties_required, notation_template, rrr_type_code, type_action_code, 
             description)
-SELECT 'changeBodyCorp','registrationServices','Change Body Corporate::::SAMOAN','c',5,100.00,0.00,0.00,1, 'Change Body Corporate Rules / Change Address for Service to <address>','commonProperty','vary','Variation to Body Corporate'
+SELECT 'changeBodyCorp','registrationServices','Change Body Corporate::::SAMOAN','x',5,100.00,0.00,0.00,1, 'Change Body Corporate Rules / Change Address for Service to <address>','commonProperty','vary','Variation to Body Corporate'
 WHERE NOT EXISTS (SELECT code FROM application.request_type WHERE code = 'changeBodyCorp');
 
 -- Link document types to the request types
@@ -126,7 +119,7 @@ INSERT INTO system.approle (code, display_value, status)
 SELECT req.code, req.display_value, 'c'
 FROM   application.request_type req
 WHERE  NOT EXISTS (SELECT r.code FROM system.approle r WHERE req.code = r.code)
-AND    req.code IN ('unitPlan', 'newUnitTitle', 'varyCommonProperty', 'cancelUnitPlan', 'changeBodyCorp'); 
+AND    req.code IN ('unitPlan', 'newUnitTitle', 'cancelUnitPlan', 'changeBodyCorp'); 
 
 INSERT INTO system.approle (code, display_value, status)
 SELECT 'StrataUnitCreate', 'Create Strata Property', 'c'
@@ -135,7 +128,7 @@ WHERE  NOT EXISTS (SELECT code FROM system.approle WHERE code = 'StrataUnitCreat
 INSERT INTO system.approle_appgroup (approle_code, appgroup_id) 
 (SELECT r.code, g.id FROM system.appgroup g, system.approle  r 
  WHERE g."name" = 'Land Registry'
- AND   r.code IN ('newUnitTitle', 'varyCommonProperty', 'cancelUnitPlan', 'changeBodyCorp', 'StrataUnitCreate' )
+ AND   r.code IN ('newUnitTitle', 'cancelUnitPlan', 'changeBodyCorp', 'StrataUnitCreate' )
  AND   NOT EXISTS (SELECT approle_code FROM system.approle_appgroup 
 				   WHERE r.code = approle_code AND appgroup_id = g.id));
 
@@ -465,7 +458,7 @@ AND    b.status_code != ''historic''
 AND    ba.ba_unit_id = b.id
 AND    ba.type_code = ''officialArea''),
     under_prop AS (
-SELECT SUM(sva.size) AS area
+SELECT SUM(ba.size) AS area
 FROM   transaction.transaction t,
        cadastre.spatial_unit_in_group sig,
        cadastre.cadastre_object co,
