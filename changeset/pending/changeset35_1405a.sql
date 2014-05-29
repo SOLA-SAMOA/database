@@ -1,5 +1,5 @@
 ﻿-- 2 Apr 2014
--- Changeset containing updates for version 1404a of SOLA.
+-- Changeset containing updates for version 1405a of SOLA.
 
 -- Ticket #138 Config for Measure Tool
 INSERT INTO system.approle (code, display_value, status, description)

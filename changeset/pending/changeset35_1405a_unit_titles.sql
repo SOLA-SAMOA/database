@@ -436,6 +436,7 @@ SELECT 'unit-plan-title-area-mismatch', 'unit-plan-title-area-mismatch', 'sql',
          'The total area for the unit titles and the common property title should match the official area of the underlying property', '#{id}(service_id) is requested'
 WHERE NOT EXISTS (SELECT id FROM system.br WHERE id = 'unit-plan-title-area-mismatch');
   
+DELETE FROM system.br_definition WHERE br_id = 'unit-plan-title-area-mismatch';
 INSERT INTO system.br_definition(
             br_id, active_from, active_until, body)
 SELECT 'unit-plan-title-area-mismatch', '10 APR 2014', 'infinity',
