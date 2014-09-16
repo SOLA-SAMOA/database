@@ -62,6 +62,7 @@ INSERT INTO level (id, name, register_type_code, structure_code, type_code, rowi
 INSERT INTO level (id, name, register_type_code, structure_code, type_code, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('1437dfc8-3430-11e2-931c-eb87eabd2d16', 'Roads', 'all', 'polygon', 'geographicLocator', 'd546e762-3445-11e2-aec6-d34d9ccb69ba', 1, 'i', 'db:postgres', '2012-11-22 12:42:11.011');
 INSERT INTO level (id, name, register_type_code, structure_code, type_code, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('14387c08-3430-11e2-b710-4b5e5b20d6c9', 'Flur', 'all', 'polygon', 'geographicLocator', 'd546e762-3445-11e2-98c0-c399ae974a0f', 1, 'i', 'db:postgres', '2012-11-22 12:42:11.011');
 INSERT INTO level (id, name, register_type_code, structure_code, type_code, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('ab915cc2-d188-11e3-897f-33dae765a184', 'Unit Parcels', 'all', NULL, 'primaryRight', 'ab9183dc-d188-11e3-8a2d-5740258755a8', 1, 'i', 'db:postgres', '2014-05-02 11:31:07.504');
+INSERT INTO level (id, name, register_type_code, structure_code, type_code, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('bae0c370-f1ef-11e3-89da-737dfc56f70f', 'Unit Parcels', 'all', NULL, 'primaryRight', 'bae0ea80-f1ef-11e3-9207-97e1d4a28898', 1, 'i', 'db:postgres', '2014-06-12 18:09:28.508');
 
 
 ALTER TABLE level ENABLE TRIGGER ALL;

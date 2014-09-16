@@ -1,4 +1,4 @@
--- 10 Sep 2014, Ticket #157 Add 2 new request types. 
+-- 10 Sep 2014, Ticket #158 Add 2 new request types. 
 
 INSERT INTO application.request_type (code, request_category_code, display_value, description, status, nr_days_to_complete,
  base_fee, nr_properties_required, notation_template, rrr_type_code, type_action_code)

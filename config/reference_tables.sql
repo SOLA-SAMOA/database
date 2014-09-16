@@ -223,6 +223,8 @@ INSERT INTO request_type (code, request_category_code, display_value, descriptio
 INSERT INTO request_type (code, request_category_code, display_value, description, status, nr_days_to_complete, base_fee, area_base_fee, value_base_fee, nr_properties_required, notation_template, rrr_type_code, type_action_code) VALUES ('changeBodyCorp', 'registrationServices', 'Change Body Corporate::::SAMOAN', 'Variation to Body Corporate', 'x', 5, 100.00, 0.00, 0.00, 1, 'Change Body Corporate Rules / Change Address for Service to <address>', 'commonProperty', 'vary');
 INSERT INTO request_type (code, request_category_code, display_value, description, status, nr_days_to_complete, base_fee, area_base_fee, value_base_fee, nr_properties_required, notation_template, rrr_type_code, type_action_code) VALUES ('newUnitTitle', 'registrationServices', 'Create Unit Titles::::SAMOAN', 'Create Unit Titles', 'x', 5, 0.00, 0.00, 0.00, 1, 'New <estate type> unit title', NULL, NULL);
 INSERT INTO request_type (code, request_category_code, display_value, description, status, nr_days_to_complete, base_fee, area_base_fee, value_base_fee, nr_properties_required, notation_template, rrr_type_code, type_action_code) VALUES ('cancelUnitPlan', 'registrationServices', 'Cancel Unit Plan::::SAMOAN', 'Unit Plan Cancellation::::...', 'x', 5, 100.00, 0.00, 0.00, 1, NULL, NULL, 'cancel');
+INSERT INTO request_type (code, request_category_code, display_value, description, status, nr_days_to_complete, base_fee, area_base_fee, value_base_fee, nr_properties_required, notation_template, rrr_type_code, type_action_code) VALUES ('recordMiscFee', 'registrationServices', 'Record Miscellaneous', 'Creates a Miscellaneous RRR on the property with a fee', 'c', 5, 100.00, 0.00, 0.00, 1, '<memorial>', 'miscellaneous', 'new');
+INSERT INTO request_type (code, request_category_code, display_value, description, status, nr_days_to_complete, base_fee, area_base_fee, value_base_fee, nr_properties_required, notation_template, rrr_type_code, type_action_code) VALUES ('cancelMiscFee', 'registrationServices', 'Cancel Miscellaneous', 'Cancels a Miscellaneous RRR on the property with a fee', 'c', 5, 100.00, 0.00, 0.00, 1, 'Miscellaneous <reference> cancelled', 'miscellaneous', 'cancel');
 
 
 ALTER TABLE request_type ENABLE TRIGGER ALL;
@@ -553,6 +555,7 @@ INSERT INTO administrative_source_type (code, display_value, status, description
 INSERT INTO administrative_source_type (code, display_value, status, description, is_for_registration) VALUES ('unitPlan', 'Unit Plan::::SAMOAN', 'c', NULL, false);
 INSERT INTO administrative_source_type (code, display_value, status, description, is_for_registration) VALUES ('bodyCorpRules', 'Body Corporate Rules::::SAMOAN', 'c', NULL, false);
 INSERT INTO administrative_source_type (code, display_value, status, description, is_for_registration) VALUES ('unitEntitlements', 'Schedule of Unit Entitlements::::SAMOAN', 'c', NULL, false);
+INSERT INTO administrative_source_type (code, display_value, status, description, is_for_registration) VALUES ('transfer', 'Transfer', 'c', 'Application transfer form', false);
 
 
 ALTER TABLE administrative_source_type ENABLE TRIGGER ALL;
