@@ -556,6 +556,10 @@ INSERT INTO administrative_source_type (code, display_value, status, description
 INSERT INTO administrative_source_type (code, display_value, status, description, is_for_registration) VALUES ('bodyCorpRules', 'Body Corporate Rules::::SAMOAN', 'c', NULL, false);
 INSERT INTO administrative_source_type (code, display_value, status, description, is_for_registration) VALUES ('unitEntitlements', 'Schedule of Unit Entitlements::::SAMOAN', 'c', NULL, false);
 INSERT INTO administrative_source_type (code, display_value, status, description, is_for_registration) VALUES ('transfer', 'Transfer', 'c', 'Application transfer form', false);
+INSERT INTO administrative_source_type (code, display_value, status, description, is_for_registration) VALUES ('dischargeMortgage', 'Discharge of Mortgage', 'c', 'Discharge of Mortgage application form', false);
+INSERT INTO administrative_source_type (code, display_value, status, description, is_for_registration) VALUES ('registryDealing', 'Registry Dealing', 'c', 'Registry Dealing application form', false);
+INSERT INTO administrative_source_type (code, display_value, status, description, is_for_registration) VALUES ('transmission', 'Transmission', 'c', 'Transmission application form', false);
+INSERT INTO administrative_source_type (code, display_value, status, description, is_for_registration) VALUES ('cancelLease', 'Cancel Lease or Sublease', 'c', 'Cancel Lease application form', false);
 
 
 ALTER TABLE administrative_source_type ENABLE TRIGGER ALL;
