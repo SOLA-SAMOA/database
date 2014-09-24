@@ -748,6 +748,8 @@ INSERT INTO approle (code, display_value, status, description) VALUES ('cancelUn
 INSERT INTO approle (code, display_value, status, description) VALUES ('changeBodyCorp', 'Change Body Corporate::::SAMOAN', 'c', NULL);
 INSERT INTO approle (code, display_value, status, description) VALUES ('StrataUnitCreate', 'Create Strata Property', 'c', NULL);
 INSERT INTO approle (code, display_value, status, description) VALUES ('ChangeParcelAttrTool', 'Change Parcel Attribute Tool', 'c', 'Allows user to change the name or status of a parcel.');
+INSERT INTO approle (code, display_value, status, description) VALUES ('recordMiscFee', 'Service - Record Miscellaneous', 'c', 'Allows the Record Miscellaneous service to be started.');
+INSERT INTO approle (code, display_value, status, description) VALUES ('cancelMiscFee', 'Service - Cancel Miscellaneous', 'c', 'Allows the Cancel Miscellaneous service to be started.');
 
 
 ALTER TABLE approle ENABLE TRIGGER ALL;

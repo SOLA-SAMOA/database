@@ -232,6 +232,8 @@ INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversi
 INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('StrataUnitCreate', '60', 'ab8f39e2-d188-11e3-906a-af58c29306b5', 1, 'i', 'db:postgres', '2014-05-02 11:31:07.504');
 INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('unitPlan', '70', 'ab8faf12-d188-11e3-8420-ab10ffc7e621', 1, 'i', 'db:postgres', '2014-05-02 11:31:07.504');
 INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('ChangeParcelAttrTool', '70', '23a7af4c-d272-11e3-aacb-93124e7cff45', 1, 'i', 'db:postgres', '2014-05-03 15:22:21.551');
+INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('recordMiscFee', '60', 'af9b54d8-43a4-11e4-9bc5-5f748b683691', 1, 'i', 'db:postgres', '2014-09-24 16:38:52.539');
+INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('cancelMiscFee', '60', 'afb17542-43a4-11e4-82a1-9f12bb98d568', 1, 'i', 'db:postgres', '2014-09-24 16:38:52.539');
 
 
 ALTER TABLE approle_appgroup ENABLE TRIGGER ALL;
