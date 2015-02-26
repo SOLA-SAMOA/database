@@ -1793,7 +1793,8 @@ CREATE FUNCTION change_parcel_name(parcel_id character varying, part1 character 
     AS $$  
 BEGIN
 
-    IF parcel_id IS NULL THEN
+    -- Ticket #156 - Don't let the user set the name to ''
+    IF parcel_id IS NULL OR TRIM(part1 || part2) = '' THEN
 	   RETURN; 
 	END IF;
 
@@ -2060,6 +2061,10 @@ CREATE FUNCTION formatparcelnrlabel(first_part character varying, last_part char
     LANGUAGE plpgsql
     AS $$
   BEGIN
+    -- Fix for Ticket #156
+    IF TRIM (first_part) = '' OR TRIM(last_part) = '' THEN
+       RETURN first_part || last_part; 
+    END IF;  
     RETURN first_part || chr(10) || last_part; 
   END; $$;
 

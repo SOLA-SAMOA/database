@@ -234,6 +234,7 @@ INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversi
 INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('ChangeParcelAttrTool', '70', '23a7af4c-d272-11e3-aacb-93124e7cff45', 1, 'i', 'db:postgres', '2014-05-03 15:22:21.551');
 INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('recordMiscFee', '60', 'af9b54d8-43a4-11e4-9bc5-5f748b683691', 1, 'i', 'db:postgres', '2014-09-24 16:38:52.539');
 INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('cancelMiscFee', '60', 'afb17542-43a4-11e4-82a1-9f12bb98d568', 1, 'i', 'db:postgres', '2014-09-24 16:38:52.539');
+INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('lifeEstateFee', '60', '367aaccc-bc65-11e4-8fde-7fd122677b95', 1, 'i', 'db:postgres', '2015-02-25 09:39:21.82');
 
 
 ALTER TABLE approle_appgroup ENABLE TRIGGER ALL;
