@@ -2,6 +2,10 @@
 -- PostgreSQL database dump
 --
 
+-- Dumped from database version 9.2.3
+-- Dumped by pg_dump version 9.2.3
+-- Started on 2015-05-12 19:20:26
+
 SET statement_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
@@ -11,6 +15,8 @@ SET client_min_messages = warning;
 SET search_path = system, pg_catalog;
 
 --
+-- TOC entry 3971 (class 0 OID 56639)
+-- Dependencies: 331
 -- Data for Name: appgroup; Type: TABLE DATA; Schema: system; Owner: postgres
 --
 
@@ -33,11 +39,147 @@ INSERT INTO appgroup (id, name, description) VALUES ('cbca8c4f-635c-4144-91af-72
 ALTER TABLE appgroup ENABLE TRIGGER ALL;
 
 --
+-- TOC entry 3969 (class 0 OID 56624)
+-- Dependencies: 329
+-- Data for Name: approle; Type: TABLE DATA; Schema: system; Owner: postgres
+--
+
+ALTER TABLE approle DISABLE TRIGGER ALL;
+
+INSERT INTO approle (code, display_value, status, description) VALUES ('DashbrdViewAssign', 'View Assigned Applications', 'c', 'View Assigned Applications in Dashboard');
+INSERT INTO approle (code, display_value, status, description) VALUES ('DashbrdViewUnassign', 'View Unassigned Applications', 'c', 'View Unassigned Applications in Dashboard');
+INSERT INTO approle (code, display_value, status, description) VALUES ('DashbrdViewOwn', 'View Own Applications', 'c', 'View Applications assigned to user  in Dashboard');
+INSERT INTO approle (code, display_value, status, description) VALUES ('ApplnView', 'Search and View Applications', 'c', 'Search and view applications');
+INSERT INTO approle (code, display_value, status, description) VALUES ('ApplnCreate', 'Lodge new Applications', 'c', 'Lodge new Applications');
+INSERT INTO approle (code, display_value, status, description) VALUES ('ApplnStatus', 'Generate and View Status Report', 'c', 'Generate and View Status Report');
+INSERT INTO approle (code, display_value, status, description) VALUES ('ApplnAssignSelf', 'Assign Applications to Self', 'c', 'Able to assign (unassigned) applications to yourself');
+INSERT INTO approle (code, display_value, status, description) VALUES ('ApplnUnassignSelf', 'Unassign Applications to Self', 'c', 'Able to unassign (assigned) applications from yourself');
+INSERT INTO approle (code, display_value, status, description) VALUES ('ApplnAssignOthers', 'Assign Applications to Other Users', 'c', 'Able to assign (unassigned) applications to other users');
+INSERT INTO approle (code, display_value, status, description) VALUES ('ApplnUnassignOthers', 'Unassign Applications to Others', 'c', 'Able to unassign (assigned) applications to other users');
+INSERT INTO approle (code, display_value, status, description) VALUES ('StartService', 'Start Service', 'c', 'Start Service');
+INSERT INTO approle (code, display_value, status, description) VALUES ('CompleteService', 'Complete Service', 'c', 'Complete Service (prior to approval)');
+INSERT INTO approle (code, display_value, status, description) VALUES ('CancelService', 'Cancel Service', 'c', 'Cancel Service');
+INSERT INTO approle (code, display_value, status, description) VALUES ('RevertService', 'Revert Service', 'c', 'Revert previously Complete Service');
+INSERT INTO approle (code, display_value, status, description) VALUES ('ApplnRequisition', 'Requisition application and request', 'c', 'Request further information from applicant');
+INSERT INTO approle (code, display_value, status, description) VALUES ('ApplnResubmit', 'Resubmit Application', 'c', 'Resubmit (requisitioned) application');
+INSERT INTO approle (code, display_value, status, description) VALUES ('ApplnApprove', 'Approve Application', 'c', 'Approve Application');
+INSERT INTO approle (code, display_value, status, description) VALUES ('ApplnWithdraw', 'Withdraw Application', 'c', 'Applicant withdraws their application');
+INSERT INTO approle (code, display_value, status, description) VALUES ('ApplnReject', 'Reject Application', 'c', 'Land Office rejects an application');
+INSERT INTO approle (code, display_value, status, description) VALUES ('ApplnValidate', 'Validate Application', 'c', 'User manually runs validation rules for application');
+INSERT INTO approle (code, display_value, status, description) VALUES ('ApplnDispatch', 'Dispatch Application', 'c', 'Dispatch any documents to be returned to applicant and any certificates/reports/map prints requested by applicant');
+INSERT INTO approle (code, display_value, status, description) VALUES ('ApplnArchive', 'Archive Application', 'c', 'Paper Application File is stored in Land Office Archive');
+INSERT INTO approle (code, display_value, status, description) VALUES ('BaunitSave', 'Create or Modify BA Unit', 'c', 'Create or Modify BA Unit (Property)');
+INSERT INTO approle (code, display_value, status, description) VALUES ('BauunitrrrSave', 'Create or Modify Rights or Restrictions', 'c', 'Create or Modify Rights or Restrictions');
+INSERT INTO approle (code, display_value, status, description) VALUES ('BaunitParcelSave', 'Create or Modify (BA Unit) Parcels', 'c', 'Create or Modify (BA Unit) Parcels');
+INSERT INTO approle (code, display_value, status, description) VALUES ('BaunitNotatSave', 'Create or Modify (BA Unit) Notations', 'c', 'Create or Modify (BA Unit) Notations');
+INSERT INTO approle (code, display_value, status, description) VALUES ('BaunitCertificate', 'Generate and Print (BA Unit) Certificate', 'c', 'Generate and Print (BA Unit) Certificate');
+INSERT INTO approle (code, display_value, status, description) VALUES ('BaunitSearch', 'Search BA Unit', 'c', 'Search BA Unit');
+INSERT INTO approle (code, display_value, status, description) VALUES ('TransactionCommit', 'Approve (and Cancel) Transaction', 'c', 'Approve (and Cancel) Transaction');
+INSERT INTO approle (code, display_value, status, description) VALUES ('ViewMap', 'View Cadastral Map', 'c', 'View Cadastral Map');
+INSERT INTO approle (code, display_value, status, description) VALUES ('PrintMap', 'Print Map', 'c', 'Print Map');
+INSERT INTO approle (code, display_value, status, description) VALUES ('ParcelSave', 'Create or modify (Cadastre) Parcel', 'c', 'Create or modify (Cadastre) Parcel');
+INSERT INTO approle (code, display_value, status, description) VALUES ('PartySave', 'Create or modify Party', 'c', 'Create or modify Party');
+INSERT INTO approle (code, display_value, status, description) VALUES ('SourceSave', 'Create or modify Source', 'c', 'Create or modify Source');
+INSERT INTO approle (code, display_value, status, description) VALUES ('SourceSearch', 'Search Sources', 'c', 'Search sources');
+INSERT INTO approle (code, display_value, status, description) VALUES ('SourcePrint', 'Print Sources', 'c', 'Print Source');
+INSERT INTO approle (code, display_value, status, description) VALUES ('ReportGenerate', 'Generate and View Reports', 'c', 'Generate and View reports');
+INSERT INTO approle (code, display_value, status, description) VALUES ('ArchiveApps', 'Archive applications', 'c', 'Archive applications');
+INSERT INTO approle (code, display_value, status, description) VALUES ('ManageSecurity', 'Manage users, groups and roles', 'c', 'Manage users, groups and roles');
+INSERT INTO approle (code, display_value, status, description) VALUES ('ManageRefdata', 'Manage reference data', 'c', 'Manage reference data');
+INSERT INTO approle (code, display_value, status, description) VALUES ('ManageSettings', 'Manage system settings', 'c', 'Manage system settings');
+INSERT INTO approle (code, display_value, status, description) VALUES ('ApplnEdit', 'Application Edit', 'c', 'Allows editing of Applications');
+INSERT INTO approle (code, display_value, status, description) VALUES ('ManageBR', 'Manage business rules', 'c', 'Allows to manage business rules');
+INSERT INTO approle (code, display_value, status, description) VALUES ('ApplnViewUnassignAll', 'View all unassigned applications', 'c', 'Allows the user to view all of the unassigned applications
+instead of just a filtered view based on the services they can perform');
+INSERT INTO approle (code, display_value, status, description) VALUES ('ApplnViewAssignAll', 'View all assigned applications', 'c', 'Allows the user to view all assigned applications
+instead of just a filtered view based on the services they can perform');
+INSERT INTO approle (code, display_value, status, description) VALUES ('cnclMortgagePOS', 'Cancel Mortgage under Power of Sale::::SAMOAN', 'c', NULL);
+INSERT INTO approle (code, display_value, status, description) VALUES ('cnclTransmissonAdmin', 'Cancel Transmission under Transfer by Administrator::::SAMOAN', 'c', NULL);
+INSERT INTO approle (code, display_value, status, description) VALUES ('planNoCoords', 'Record Plan with No Coordinates::::SAMOAN', 'c', NULL);
+INSERT INTO approle (code, display_value, status, description) VALUES ('ExportMap', 'Export Map', 'c', 'Export a selected map feature to KML for display in Google Earth');
+INSERT INTO approle (code, display_value, status, description) VALUES ('ChangePassword', 'Admin - Change Password', 'c', 'Allows a user to change their password and edit thier user name. This role should be included in every security group.');
+INSERT INTO approle (code, display_value, status, description) VALUES ('NoPasswordExpiry', 'Admin - No Password Expiry', 'c', 'Users with this role will not be subject to a password expiry if one is in place. This role can be assigned to user accounts used by other systems to integrate with the SOLA web services.');
+INSERT INTO approle (code, display_value, status, description) VALUES ('lapseCaveat', 'Lapse Caveat', 'c', 'Used for processing Lapse Caveat services.');
+INSERT INTO approle (code, display_value, status, description) VALUES ('MeasureTool', 'Measure Tool', 'c', 'Allows user to measure a distance on the map.');
+INSERT INTO approle (code, display_value, status, description) VALUES ('ChangeParcelAttrTool', 'Change Parcel Attribute Tool', 'c', 'Allows user to change the name or status of a parcel.');
+INSERT INTO approle (code, display_value, status, description) VALUES ('unitPlan', 'Record Unit Plan::::SAMOAN', 'c', NULL);
+INSERT INTO approle (code, display_value, status, description) VALUES ('newUnitTitle', 'Create Unit Titles::::SAMOAN', 'c', NULL);
+INSERT INTO approle (code, display_value, status, description) VALUES ('cancelUnitPlan', 'Cancel Unit Titles::::SAMOAN', 'c', NULL);
+INSERT INTO approle (code, display_value, status, description) VALUES ('changeBodyCorp', 'Change Body Corporate::::SAMOAN', 'c', NULL);
+INSERT INTO approle (code, display_value, status, description) VALUES ('StrataUnitCreate', 'Create Strata Property', 'c', NULL);
+INSERT INTO approle (code, display_value, status, description) VALUES ('recordMiscFee', 'Service - Record Miscellaneous', 'c', 'Allows the Record Miscellaneous service to be started.');
+INSERT INTO approle (code, display_value, status, description) VALUES ('cancelMiscFee', 'Service - Cancel Miscellaneous', 'c', 'Allows the Cancel Miscellaneous service to be started.');
+INSERT INTO approle (code, display_value, status, description) VALUES ('lifeEstateFee', 'Service - Record Life Estate with Fee', 'c', 'Allows the Record Life Estate with Fee service to be started.');
+INSERT INTO approle (code, display_value, status, description) VALUES ('cadastreChange', 'Record Plan::::SAMOAN', 'c', 'Allows to make changes to the cadastre');
+INSERT INTO approle (code, display_value, status, description) VALUES ('ApplnNr', 'Set Application Number', 'c', 'Set application number to match number allocated by LRS');
+INSERT INTO approle (code, display_value, status, description) VALUES ('FeePayment', 'Record Fee Payment', 'c', 'Allows the user to set the Fee Paid flag on the Application Details screen');
+INSERT INTO approle (code, display_value, status, description) VALUES ('ApplnCompleteDate', 'Edit Application Completion Date', 'c', 'Allows the user to update the completion date for the application on the Application Details screen');
+INSERT INTO approle (code, display_value, status, description) VALUES ('ManageUserPassword', 'Manager User Details and Password', 'c', 'Allows the user to update their user details and/or password');
+INSERT INTO approle (code, display_value, status, description) VALUES ('ViewSource', 'View Source Details', 'c', 'Allows the user to view source and document details.');
+INSERT INTO approle (code, display_value, status, description) VALUES ('PartySearch', 'Search Party', 'c', 'Allows the user access to the Party Search so they can edit existing parties (i.e. Lodging Agent and Bank details).');
+INSERT INTO approle (code, display_value, status, description) VALUES ('cadastrePrint', 'Map Print::::SAMOAN', 'c', 'Allows to make prints of cadastre map');
+INSERT INTO approle (code, display_value, status, description) VALUES ('cancelProperty', 'Cancel Title::::SAMOAN', 'c', 'Allows to make changes to cancel title');
+INSERT INTO approle (code, display_value, status, description) VALUES ('caveat', 'Record Caveat::::SAMOAN', 'c', 'Allows to make changes for registration of caveat');
+INSERT INTO approle (code, display_value, status, description) VALUES ('cnclPowerOfAttorney', 'Cancel Power of Attorney::::SAMOAN', 'c', 'Allows to make changes to cancel power of attorney');
+INSERT INTO approle (code, display_value, status, description) VALUES ('cnclStandardDocument', 'Cancel Standard Memorandum::::SAMOAN', 'c', 'Allows to make changes to withdraw standard document');
+INSERT INTO approle (code, display_value, status, description) VALUES ('mortgage', 'Record Mortgage::::SAMOAN', 'c', 'Allows to make changes for registration of mortgage');
+INSERT INTO approle (code, display_value, status, description) VALUES ('newDigitalTitle', 'Convert to Title::::SAMOAN', 'c', 'Allows to make changes for digital conversion of an existing title');
+INSERT INTO approle (code, display_value, status, description) VALUES ('newFreehold', 'Create New Title::::SAMOAN', 'c', 'Allows to make changes for registration of a new freehold title');
+INSERT INTO approle (code, display_value, status, description) VALUES ('newOwnership', 'Transfer::::SAMOAN', 'c', 'Allows to make changes for registration of ownership change');
+INSERT INTO approle (code, display_value, status, description) VALUES ('redefineCadastre', 'Change Map::::SAMOAN', 'c', 'Allows to make changes to existing cadastre objects');
+INSERT INTO approle (code, display_value, status, description) VALUES ('registerLease', 'Record Lease::::SAMOAN', 'c', 'Allows to make changes for registration of a lease');
+INSERT INTO approle (code, display_value, status, description) VALUES ('regnOnTitle', 'Record Memorial::::SAMOAN', 'c', 'Allows to make changes for general (not specific) registration on a title');
+INSERT INTO approle (code, display_value, status, description) VALUES ('regnPowerOfAttorney', 'Record Power of Attorney::::SAMOAN', 'c', 'Allows to make changes for registration of power of attorney');
+INSERT INTO approle (code, display_value, status, description) VALUES ('regnStandardDocument', 'Record Standard Memorandum::::SAMOAN', 'c', 'Allows to make changes for registration of a standard document');
+INSERT INTO approle (code, display_value, status, description) VALUES ('removeCaveat', 'Cancel Caveat::::SAMOAN', 'c', 'Allows to make changes for the removal of a caveat');
+INSERT INTO approle (code, display_value, status, description) VALUES ('removeRestriction', 'Cancel Mortgage::::SAMOAN', 'c', 'Allows to make changes for the removal of a restriction');
+INSERT INTO approle (code, display_value, status, description) VALUES ('removeRight', 'Cancel Lease or Sublease::::SAMOAN', 'c', 'Allows to make changes for the removal of a right');
+INSERT INTO approle (code, display_value, status, description) VALUES ('varyCaveat', 'Change Caveat::::SAMOAN', 'c', 'Allows to make changes for registration of a variation to a caveat');
+INSERT INTO approle (code, display_value, status, description) VALUES ('varyLease', 'Change Lease or Sublease::::SAMOAN', 'c', 'Allows to make changes for registration of a variation to a lease');
+INSERT INTO approle (code, display_value, status, description) VALUES ('lifeEstate', 'Record Life Estate::::SAMOAN', 'c', NULL);
+INSERT INTO approle (code, display_value, status, description) VALUES ('removeLifeEstate', 'Cancel Life Estate::::SAMOAN', 'c', NULL);
+INSERT INTO approle (code, display_value, status, description) VALUES ('varyTitle', 'Change Estate Type::::SAMOAN', 'c', NULL);
+INSERT INTO approle (code, display_value, status, description) VALUES ('easement', 'Record Easement::::SAMOAN', 'c', NULL);
+INSERT INTO approle (code, display_value, status, description) VALUES ('removeEasement', 'Cancel Easement::::SAMOAN', 'c', NULL);
+INSERT INTO approle (code, display_value, status, description) VALUES ('variationMortgage', 'Change Mortgage::::SAMOAN', 'c', NULL);
+INSERT INTO approle (code, display_value, status, description) VALUES ('proclamation', 'Record Proclamation::::SAMOAN', 'c', NULL);
+INSERT INTO approle (code, display_value, status, description) VALUES ('order', 'Record Court Order::::SAMOAN', 'c', NULL);
+INSERT INTO approle (code, display_value, status, description) VALUES ('subLease', 'Record Sub Lease::::SAMOAN', 'c', NULL);
+INSERT INTO approle (code, display_value, status, description) VALUES ('registrarCorrection', 'Correct Registry::::SAMOAN', 'c', NULL);
+INSERT INTO approle (code, display_value, status, description) VALUES ('registrarCancel', 'Correct Registry (Cancel Right)::::SAMOAN', 'c', NULL);
+INSERT INTO approle (code, display_value, status, description) VALUES ('removeOrder', 'Cancel Court Order::::SAMOAN', 'c', NULL);
+INSERT INTO approle (code, display_value, status, description) VALUES ('removeProclamation', 'Cancel Proclamation::::SAMOAN', 'c', NULL);
+INSERT INTO approle (code, display_value, status, description) VALUES ('transmission', 'Record Transmission::::SAMOAN', 'c', NULL);
+INSERT INTO approle (code, display_value, status, description) VALUES ('removeTransmission', 'Cancel Transmission::::SAMOAN', 'c', NULL);
+INSERT INTO approle (code, display_value, status, description) VALUES ('miscellaneous', 'Record Miscellaneous::::SAMOAN', 'c', NULL);
+INSERT INTO approle (code, display_value, status, description) VALUES ('cancelMisc', 'Cancel Miscellaneous::::SAMOAN', 'c', NULL);
+INSERT INTO approle (code, display_value, status, description) VALUES ('certifiedCopy', 'Produce/Print a Certified Copy::::SAMOAN', 'c', NULL);
+INSERT INTO approle (code, display_value, status, description) VALUES ('cadastreExport', 'Map Export::::SAMOAN', 'c', NULL);
+INSERT INTO approle (code, display_value, status, description) VALUES ('cadastreBulk', 'Bulk Map Export::::SAMOAN', 'c', NULL);
+
+
+ALTER TABLE approle ENABLE TRIGGER ALL;
+
+--
+-- TOC entry 3970 (class 0 OID 56634)
+-- Dependencies: 330
 -- Data for Name: approle_appgroup; Type: TABLE DATA; Schema: system; Owner: postgres
 --
 
 ALTER TABLE approle_appgroup DISABLE TRIGGER ALL;
 
+INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('lapseCaveat', '60', 'd6454d56-baa0-11e3-9582-0f08f5d217b3', 1, 'i', 'db:postgres', '2014-04-03 09:56:10.364');
+INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('MeasureTool', '80', 'ad530696-f1ef-11e3-9019-1f136975c4b3', 1, 'i', 'db:postgres', '2014-06-12 18:09:05.804');
+INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('MeasureTool', '70', 'ad59484e-f1ef-11e3-86c0-f752ceb036fc', 1, 'i', 'db:postgres', '2014-06-12 18:09:05.804');
+INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('ChangeParcelAttrTool', '70', 'ad8dee32-f1ef-11e3-ab49-67485d8167d9', 1, 'i', 'db:postgres', '2014-06-12 18:09:05.804');
+INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('newUnitTitle', '60', 'badf3cc6-f1ef-11e3-a83f-d7c134f27f54', 1, 'i', 'db:postgres', '2014-06-12 18:09:28.508');
+INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('cancelUnitPlan', '60', 'badf63d6-f1ef-11e3-81c1-7b8ca0b899a4', 1, 'i', 'db:postgres', '2014-06-12 18:09:28.508');
+INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('changeBodyCorp', '60', 'badf8af0-f1ef-11e3-ab37-431713ccce33', 1, 'i', 'db:postgres', '2014-06-12 18:09:28.508');
+INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('StrataUnitCreate', '60', 'badfb200-f1ef-11e3-9af5-cffd6964dc59', 1, 'i', 'db:postgres', '2014-06-12 18:09:28.508');
+INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('unitPlan', '70', 'bae00020-f1ef-11e3-82b6-734397ba6b84', 1, 'i', 'db:postgres', '2014-06-12 18:09:28.508');
+INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('recordMiscFee', '60', 'ade4f30a-4427-11e4-874c-af8f584e80e5', 1, 'i', 'db:postgres', '2014-09-25 09:16:33.967');
+INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('cancelMiscFee', '60', 'ade9b5ca-4427-11e4-879f-5b1b27f7a2da', 1, 'i', 'db:postgres', '2014-09-25 09:16:33.967');
+INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('lifeEstateFee', '60', '8e8d7ee8-655e-11e4-a01e-273cf913a8fd', 1, 'i', 'db:postgres', '2014-11-06 16:42:32.061');
 INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('ManageBR', '10', '6305cb56-b530-11e3-b8dc-13b9eb98f20d', 1, 'i', 'db:postgres', '2014-03-27 11:48:37.391');
 INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('ManageRefdata', '10', '630a8e20-b530-11e3-be01-c30cb7470503', 1, 'i', 'db:postgres', '2014-03-27 11:48:37.391');
 INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('ManageSettings', '10', '630a8e20-b530-11e3-974d-4f3874f2c3c1', 1, 'i', 'db:postgres', '2014-03-27 11:48:37.391');
@@ -222,33 +364,25 @@ INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversi
 INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('ChangePassword', '80', '633eecec-b530-11e3-80f6-13bd987559a8', 1, 'i', 'db:postgres', '2014-03-27 11:48:37.391');
 INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('ChangePassword', '5654ca9a-595d-4a25-9809-0899dcb93673', '633eecec-b530-11e3-ac95-ff2a42fe1278', 1, 'i', 'db:postgres', '2014-03-27 11:48:37.391');
 INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('ChangePassword', 'cbca8c4f-635c-4144-91af-726cba414f5f', '633eecec-b530-11e3-b543-2bc37af720fe', 1, 'i', 'db:postgres', '2014-03-27 11:48:37.391');
-INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('MeasureTool', '80', 'bf714a0e-b9ff-11e3-8877-1777a5282621', 1, 'i', 'db:postgres', '2014-04-02 13:43:03.084');
-INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('MeasureTool', '70', 'bf72346e-b9ff-11e3-9e1c-af739e042ea5', 1, 'i', 'db:postgres', '2014-04-02 13:43:03.084');
-INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('lapseCaveat', '60', 'a3964d46-ba0b-11e3-bf9b-8b159f9d8226', 1, 'i', 'db:postgres', '2014-04-02 15:08:10.316');
-INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('newUnitTitle', '60', 'ab8e9d98-d188-11e3-930c-fb9223f9b49f', 1, 'i', 'db:postgres', '2014-05-02 11:31:07.504');
-INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('varyCommonProperty', '60', 'ab8ec4b2-d188-11e3-ac2e-5f1cc85d046b', 1, 'i', 'db:postgres', '2014-05-02 11:31:07.504');
-INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('cancelUnitPlan', '60', 'ab8eebc2-d188-11e3-b1b6-7b815ec0df1f', 1, 'i', 'db:postgres', '2014-05-02 11:31:07.504');
-INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('changeBodyCorp', '60', 'ab8f12d2-d188-11e3-99c0-df7fa58e7a21', 1, 'i', 'db:postgres', '2014-05-02 11:31:07.504');
-INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('StrataUnitCreate', '60', 'ab8f39e2-d188-11e3-906a-af58c29306b5', 1, 'i', 'db:postgres', '2014-05-02 11:31:07.504');
-INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('unitPlan', '70', 'ab8faf12-d188-11e3-8420-ab10ffc7e621', 1, 'i', 'db:postgres', '2014-05-02 11:31:07.504');
-INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('ChangeParcelAttrTool', '70', '23a7af4c-d272-11e3-aacb-93124e7cff45', 1, 'i', 'db:postgres', '2014-05-03 15:22:21.551');
-INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('recordMiscFee', '60', 'af9b54d8-43a4-11e4-9bc5-5f748b683691', 1, 'i', 'db:postgres', '2014-09-24 16:38:52.539');
-INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('cancelMiscFee', '60', 'afb17542-43a4-11e4-82a1-9f12bb98d568', 1, 'i', 'db:postgres', '2014-09-24 16:38:52.539');
-INSERT INTO approle_appgroup (approle_code, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('lifeEstateFee', '60', '367aaccc-bc65-11e4-8fde-7fd122677b95', 1, 'i', 'db:postgres', '2015-02-25 09:39:21.82');
 
 
 ALTER TABLE approle_appgroup ENABLE TRIGGER ALL;
 
 --
+-- TOC entry 3968 (class 0 OID 55454)
+-- Dependencies: 223
 -- Data for Name: appuser; Type: TABLE DATA; Schema: system; Owner: postgres
 --
 
 ALTER TABLE appuser DISABLE TRIGGER ALL;
 
+INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('46f8e336-e993-40ab-a7a1-a3e674abf741', 'amataga', 'Amataga', 'Penaia', 'a28cccdf631314bd8a86edcca981ac89931b944b297cbe85312eeadcca5abab2', true, NULL, 'd0e23a2f-d9d6-4c58-ba26-e0e2529bf65d', 2, 'u', 'charles', '2015-01-26 11:48:30.333');
+INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('a6f6a72e-1d19-43d0-a87b-421915067cd3', 'angela', 'Angela', 'Atoaga', '04a6845c1b59778d09aecc8d9f6c018e3323d38ed368d14e8fb1d1ba7315c24e', true, NULL, '5270a02d-a399-4453-9ae9-7314b2fcaa7e', 10, 'u', 'angela', '2015-04-13 16:19:38.262');
 INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('test-id', 'test', 'Test', 'The BOSS', '7e2dff3c8e56a95708bf095ffaf0213ff756319606541b3ac89d1ad60705d0cd', false, NULL, 'd3804090-3445-11e2-96d3-abe8573edd69', 7, 'u', 'andrew', '2014-03-27 11:48:37.391');
-INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('E0319B8C-E511-4702-B1B7-C723245824FB', 'fala', 'Fala', 'Selesele', '34ea1dc7f1218bca0ae5cfa00a3559bcc07cd3b6e32466f43c4a75673a1b7d92', true, NULL, 'd7b2f83c-3432-11e2-920c-8fff30b2ba76', 8, 'u', 'fala', '2014-03-27 12:45:09.838');
-INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('673fd90a-3435-11e2-8f0b-bffcc5e5c194', 'petania', 'Petania', 'Tuala', 'f7ce55afd87d1c30743276f6621752f61d12068418685fe6afb665dfb1ce5a44', true, NULL, '6740001a-3435-11e2-8884-e70a90fd02d2', 8, 'u', 'petania', '2014-03-27 12:58:15.968');
-INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('673eeeaa-3435-11e2-ba68-ff851a3828b9', 'tuaoloa', 'Tuaoloa', 'Pokati', 'd7fcb3cbee43bdc02d5526c729eada0c9626923a2c5a5611d987716cc8e4293a', true, NULL, '673f15ba-3435-11e2-b45c-37a1b7703f28', 12, 'u', 'tuaoloa', '2014-03-27 14:20:35.365');
+INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('35f52bc7-4d82-4986-a9bf-46ca85392202', 'joshua', 'Joshua', 'Satomai', 'ecb7028d2728fc9dab9c78f9556a9fe3d729fbe4b0852d426fbee0e8cbf19a1a', true, NULL, '025cb0b8-1ea7-4698-ac55-11dee40755d8', 8, 'u', 'joshua', '2015-02-16 12:49:03.57');
+INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('673fd90a-3435-11e2-8f0b-bffcc5e5c194', 'petania', 'Petania', 'Tuala', 'a0bbeb16a6342171e804eb1146e31e50282b90821e144c915ddd2d52f3a6854c', true, NULL, '6740001a-3435-11e2-8884-e70a90fd02d2', 16, 'u', 'petania', '2015-04-01 10:58:23.659');
+INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('673eeeaa-3435-11e2-ba68-ff851a3828b9', 'tuaoloa', 'Tuaoloa', 'Pokati', 'fc093c6f48bcdad5ddd7964faff3a41c51b337a4824301b96c4d3b293b590c30', true, NULL, '673f15ba-3435-11e2-b45c-37a1b7703f28', 17, 'u', 'tuaoloa', '2015-04-13 09:52:03.811');
+INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('E0319B8C-E511-4702-B1B7-C723245824FB', 'fala', 'Fala', 'Selesele', 'e38aaf15a65e5b7e3c5838d9ea2b65e80b9dffe5b5ffef2c8af071ec4730c37c', true, NULL, 'd7b2f83c-3432-11e2-920c-8fff30b2ba76', 14, 'u', 'fala', '2015-04-20 09:18:50.353');
 INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('19B6C313-40B4-45BF-BC22-CA0D5572A249', 'dennis', 'Dennis', 'Brady', '9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08', false, NULL, 'd7b2aa1c-3432-11e2-aebc-8faad9a202d1', 5, 'u', 'andrew', '2014-03-27 11:48:37.391');
 INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('19B86E80-CDF9-4B23-802A-9DEA4D50FF05', 'moira', 'Moira', 'Faletutulu', '9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08', false, NULL, 'd7b36d6c-3432-11e2-8fae-cb111e653506', 5, 'u', 'andrew', '2014-03-27 11:48:37.391');
 INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('6CBF1597-4EE0-4A03-8061-2DAD87DA26C7', 'nimo', 'Faanimo', 'Reti-Warren', '9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08', false, NULL, 'd7b409b6-3432-11e2-8561-2f040a0f2d19', 5, 'u', 'andrew', '2014-03-27 11:48:37.391');
@@ -261,39 +395,40 @@ INSERT INTO appuser (id, username, first_name, last_name, passwd, active, descri
 INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('3B6A688C-4F0F-4498-A19D-70BE95AB1F36', 'tua2', 'Tuaena', 'Faasalaina (2)', '9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08', false, NULL, 'd7b6eff0-3432-11e2-9435-ef9dccecddbd', 6, 'u', 'andrew', '2014-03-27 11:48:37.391');
 INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('B578EC10-CA95-40A2-8073-E14CBC9D2A45', 'neil', 'Neil', 'Pullar', '7e2dff3c8e56a95708bf095ffaf0213ff756319606541b3ac89d1ad60705d0cd', false, NULL, 'd7b3bb8c-3432-11e2-9910-a7a80ae98ad8', 8, 'u', 'andrew', '2014-03-27 11:48:37.391');
 INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('d56377ec-3445-11e2-9730-7f79d007c7d6', 'qauser', 'Quality Assurance', 'User', 'eadf21066c938cd862cf4bb59f1e36b9a75334b4a8445bb1053e0661446ebcd9', false, NULL, 'd565d94c-3445-11e2-b6dc-4b7f5af73e41', 4, 'u', 'andrew', '2014-03-27 11:48:37.391');
-INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('35f52bc7-4d82-4986-a9bf-46ca85392202', 'joshua', 'Joshua', 'Satomai', '1b4f0e9851971998e732078544c96b36c3d01cedf7caa332359d6f1d83567014', false, NULL, '025cb0b8-1ea7-4698-ac55-11dee40755d8', 5, 'u', 'andrew', '2014-03-27 11:48:37.391');
 INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('d56377ec-3445-11e2-8a38-874e23abe3a7', 'landreguser', 'Land Registry', 'User', '3a1fbe3718bec66761c29cbfd640b6b245fd9a728a6115d7ac0e342a39224eef', false, NULL, 'd56377ec-3445-11e2-9e91-ff5a079f16cc', 4, 'u', 'andrew', '2014-03-27 11:48:37.391');
 INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('d56377ec-3445-11e2-b8de-b3d6c2ff5a47', 'admin', 'MNRE', 'Admin', '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918', false, NULL, 'd56377ec-3445-11e2-8cf2-932d94236594', 4, 'u', 'andrew', '2014-03-27 11:48:37.391');
-INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('673e2b50-3435-11e2-92d4-d3e10f46f3bd', 'semi', 'Semi', 'Peteru', 'c2c427c805c6a0b42f98c5c15f4605b017d0573600ebc3d96db6e495f2b0ef30', true, NULL, '673e5260-3435-11e2-893e-675d25881792', 8, 'u', 'andrew', '2014-03-27 11:48:37.391');
 INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('BA42FC58-6636-4400-B41C-765773F805BC', 'admin2', 'SOLA', 'Admin (2)', '7e2dff3c8e56a95708bf095ffaf0213ff756319606541b3ac89d1ad60705d0cd', false, NULL, 'd7b62c96-3432-11e2-bd36-d779c0ec7d5d', 8, 'u', 'andrew', '2014-03-27 11:48:37.391');
-INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('A2439B88-3BFD-4B64-8F72-601C1FDF6C85', 'sita', 'Filisita', 'Heather', 'd5792cea031d45dc013977007fad4ca41c1b206bfd00261e933789934e539e03', true, NULL, 'd7b54236-3432-11e2-9f36-fb8c791605fd', 7, 'u', 'andrew', '2014-03-27 11:48:37.391');
-INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('6740754a-3435-11e2-b9f0-f3115a7a6e2e', 'toelau', 'Safuta Toelau', 'Iulio', 'bbc9ee6e0a0019c1a5863f0e0b5d81c35448f266c869b7561c1affca98c35b7e', true, NULL, '67409c5a-3435-11e2-83cf-7bc3c6b322ce', 7, 'u', 'andrew', '2014-03-27 11:48:37.391');
 INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('7b87f030-3446-11e2-8a25-bf0bf85aedd9', 'dcdb-migration', 'DCDB', 'Migration', '7b87f030-3446-11e2-b94c-c3da58144f40', false, 'DCDB Migration User', '7b87f030-3446-11e2-9043-f7af2766009a', 4, 'u', 'andrew', '2014-03-27 11:48:37.391');
-INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('9f88cb8a-ff49-4dc5-a7a5-a1be0e8bc908', 'sam', 'sam', 'paniani', '1b4f0e9851971998e732078544c96b36c3d01cedf7caa332359d6f1d83567014', false, NULL, '67eba0f2-7977-49c7-95e0-684c56a4b2e8', 5, 'u', 'andrew', '2014-03-27 11:48:37.391');
-INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('ff0c8809-a4ca-46ae-aa22-6be3f7d4c2c9', 'lydia', 'Lydia', 'Ah-Kuoi', '41faa2c07086c945b1685a04529a25d85cb77e99f9213b01012a6147ddc12c35', true, NULL, 'f8d89dc2-53ba-4109-b59b-074bd37f2afc', 5, 'u', 'andrew', '2014-03-27 11:48:37.391');
-INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('6b22b21b-1d97-4513-82fa-81d4e678fff3', 'sevao', 'Sevao', 'Avaavau', '5ce0d6159e7238ab7f1a8eceb1ea47766db228c7a2441329e3942ee89004687c', true, NULL, 'e78d1b97-35da-4990-948f-b221a5945b21', 8, 'u', 'andrew', '2014-03-27 11:48:37.391');
-INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('1d3e9151-5992-4970-8d0d-172370029afb', 'pau', 'Muausa Pau', 'Ioane', 'a02e5684cfedd9e590ee885987c189be6619df4991384a5b8a0e9267e79495ca', true, '		', 'fd18479e-fcbd-463e-b848-c69f4f52ec2c', 4, 'u', 'andrew', '2014-03-27 11:48:37.391');
-INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('f028e32a-6c78-495e-8f5b-93a8acf1b90c', 'charles', 'Charles', 'Pritchard', '81c508693f7a7e070b3d82ec38fa41922de4f38e24473c690e7d35b5754435b8', true, NULL, '00b913a5-cca9-4b82-8b44-fb1c62b88132', 5, 'u', 'andrew', '2014-03-27 11:48:37.391');
-INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('a1537fe7-b743-4405-8043-83bb81f8a79f', 'safuta', 'Safuta', 'Toelau', '41e690f6014670aadec801ffeaaa7bb1a79dd50bc0621d142b4ed400593485db', true, NULL, 'bab2ad6e-13d7-4026-a034-91ea6aad6c52', 4, 'u', 'andrew', '2014-03-27 11:48:37.391');
-INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('04b8f5db-32eb-4251-9bea-51dddc09e8dc', 'viswam', 'Viswam', 'Ainuu', '2850d3d86fcd13e802194b052c8e2c6936572e8454baae71b0f4aa16600738bb', true, NULL, '01510a7a-3e67-47ee-bfd6-109471ebbb86', 4, 'u', 'andrew', '2014-03-27 11:48:37.391');
-INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('9E56EA06-3EAB-49A5-89E6-AB71F5C199AB', 'tua', 'Tuaena', 'Faasalaina', '7bceb7fde85bbc9c21077d353a1e8e25b3bf5d61855abb46d15b81051eb4224f', true, NULL, 'd7b5b766-3432-11e2-b14d-7f67e4f6e7f7', 8, 'u', 'tua', '2014-03-27 12:07:25.357');
-INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('32442559-2AC7-4618-8879-9238AC078626', 'niko', 'Falaniko', 'Afaese', 'a8085a342815cc578471487e60bdf24a026a46f73f56803fc1f265db07b539a9', true, NULL, 'd7b3e2a6-3432-11e2-8037-1bad703e2cee', 8, 'u', 'niko', '2014-03-27 12:16:53.618');
-INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('F8556B65-84E7-490F-B86F-73638B5B6230', 'pati', 'Pati', 'Paepae', 'fac445f594a545116747701d3a307109432735698cabeebf65f09ac5d343d78b', true, NULL, 'd7b457d6-3432-11e2-aaca-f374f6a28bd1', 8, 'u', 'pati', '2014-03-27 12:37:54.691');
-INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('f076cf78-a189-447f-85ce-b9533d690217', 'aukuso', 'Aukuso', 'Fruean', '9f0638fd60feedbc1a5dced8234040d707c084bd75ddd2efb9154dbc220894bb', true, NULL, '8b3fbede-e6c4-4a60-8526-cda3bf74bfb6', 6, 'u', 'aukuso', '2014-03-27 12:44:19.122');
-INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('C3B9742D-6D1D-49E6-B9FE-EA510E0C1A93', 'sapati', 'Sapati', 'Misipati', '835b2dfa8c3d5ed0832e1c9e33bc7117d114609d3384073cd4df32d447d3241e', true, NULL, 'd7b4cd06-3432-11e2-985d-7f505ae44041', 8, 'u', 'sapati', '2014-03-27 12:51:14.082');
-INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('673ddd30-3435-11e2-a7a6-4f308915f2b6', 'tufi', 'Tufi', 'Auelua', 'f0cbd3f07c677168058300b8273c74f8e80eb07458a1ff3c60b47bc61dcd2d53', true, NULL, '673ddd30-3435-11e2-8d39-47ed22c6ab2e', 8, 'u', 'tufi', '2014-03-27 14:22:26.484');
-INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('673f3cca-3435-11e2-9287-7344fd9df7f7', 'pasese', 'Pasese', 'Pasese', '82bcfe5cc525209e46bf5a66a552f17ca86d5fcb122c3fdca9600afaf8ca401e', true, NULL, '673f63da-3435-11e2-ac77-4bd0d722627a', 8, 'u', 'pasese', '2014-03-27 14:40:22.088');
-INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('F4D22792-9842-413C-ACFF-B697F10E60F9', 'tavita', 'Tavita', 'Lesatele', '1b2fc9341a16ae4e30082965d537ae47c21a0f27fd43eab78330ed81751ae6db', true, NULL, 'd7b59056-3432-11e2-882b-bf48245abdb9', 15, 'u', 'tavita', '2014-03-27 15:22:01.126');
-INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('E4E6554E-C5B7-4C0B-A98E-8FBE82D3BD01', 'peta', 'Elisapeta', 'Leato', 'aaba03a84577d67ae9999e03d237b23645ecfc46fb5c5881c92499a91e3f1ea0', true, NULL, 'd7b2d12c-3432-11e2-9855-eb5ecbdb01b3', 9, 'u', 'peta', '2014-03-27 15:15:59.718');
-INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('F1ECE0D4-773F-4598-858B-6F8A878E30AF', 'pele', 'Pele', 'Fuatai', 'e44a87bed53d11f094888aa52b1bc839548457b45c5afd07a8ea1a5ac0856782', true, NULL, 'd7b47ee6-3432-11e2-ae4b-e741a8fc4b2d', 9, 'u', 'pele', '2014-03-27 15:25:52.464');
+INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('6740272a-3435-11e2-9c29-2f60b79da144', 'fenika', 'Fenika', 'Oloapu', '1c266a4cd5f19846d0e46196f60cb0263f17a555c834f9436e3a44e64c3b921e', true, NULL, '67404e3a-3435-11e2-a24d-dfed019b7f6f', 10, 'u', 'fenika', '2014-09-18 16:07:11.33');
+INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('a1537fe7-b743-4405-8043-83bb81f8a79f', 'safuta', 'Safuta', 'Toelau', '949bcafe592c0c1b544b699261b9a79c6df43dc04e7d2fa2dbc459a6d5ec0bcd', true, NULL, 'bab2ad6e-13d7-4026-a034-91ea6aad6c52', 8, 'u', 'lydia', '2015-04-27 12:36:14.127');
+INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('C3B9742D-6D1D-49E6-B9FE-EA510E0C1A93', 'sapati', 'Sapati', 'Misipati', 'e6f7c892bdcdffac90a0701eb73ed62f307f2d08acb4122f69f6fbc15e66ee06', true, NULL, 'd7b4cd06-3432-11e2-985d-7f505ae44041', 13, 'u', 'sapati', '2015-04-28 09:12:41.11');
+INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('A2439B88-3BFD-4B64-8F72-601C1FDF6C85', 'sita', 'Filisita', 'Heather', '88ffc7f9d97ae44c6d097a838649223ea0792a56dfc67d98067eb73c2aec0d8b', true, NULL, 'd7b54236-3432-11e2-9f36-fb8c791605fd', 19, 'u', 'lydia', '2015-04-13 11:50:27.521');
+INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('04b8f5db-32eb-4251-9bea-51dddc09e8dc', 'viswam', 'Viswam', 'Ainuu', 'f8ff8b07ab2b1d31cd8f7c0972e5a941a080f91cbb7432495f5d4f1e1e6bf06b', true, NULL, '01510a7a-3e67-47ee-bfd6-109471ebbb86', 9, 'u', 'viswam', '2015-04-14 10:56:42.863');
+INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('f028e32a-6c78-495e-8f5b-93a8acf1b90c', 'charles', 'Charles', 'Pritchard', 'eac64a2261b8d88e3bac3f2f895201cb26f153a6db657c711ea3e5b56a1f39ab', true, NULL, '00b913a5-cca9-4b82-8b44-fb1c62b88132', 14, 'u', 'charles', '2015-04-09 09:34:25.77');
+INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('673e2b50-3435-11e2-92d4-d3e10f46f3bd', 'semi', 'Semi', 'Peteru', '49813048190d5397becd105e26531d57519612654ada76c2dd0506c0b2351add', true, NULL, '673e5260-3435-11e2-893e-675d25881792', 16, 'u', 'charles', '2015-04-09 09:38:52.545');
+INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('673f3cca-3435-11e2-9287-7344fd9df7f7', 'pasese', 'Pasese', 'Pasese', '7bc9aed88d745c9e905e8f228227516649414b139ae106c63f708268d780909c', true, NULL, '673f63da-3435-11e2-ac77-4bd0d722627a', 13, 'u', 'lydia', '2015-04-28 15:19:53.636');
+INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('f076cf78-a189-447f-85ce-b9533d690217', 'aukuso', 'Aukuso', 'Fruean', 'be11de77f3869af1efbff24755c3dd4da655b1b38413a0e47a2927cd338cf011', true, NULL, '8b3fbede-e6c4-4a60-8526-cda3bf74bfb6', 11, 'u', 'aukuso', '2015-04-20 11:00:36.994');
 INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('673ea080-3435-11e2-9164-0b47aa9ede1b', 'ese', 'Ese', 'Suisala', '18fcb1f76994c6191e889422790f6cd36bf210178ea7e329dce708e5dc6b5242', true, NULL, '673ec79a-3435-11e2-ac53-a396e06f8942', 8, 'u', 'ese', '2014-03-27 15:19:00.104');
-INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('6740272a-3435-11e2-9c29-2f60b79da144', 'fenika', 'Fenika', 'Oloapu', 'b988c17bfdcaa2c803332f123a203a1385fe5dc441bf3180b593a7d6184c1679', true, NULL, '67404e3a-3435-11e2-a24d-dfed019b7f6f', 8, 'u', 'fenika', '2014-03-28 11:20:05.919');
-INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('673cf2d0-3435-11e2-8d79-9bbadfb66eb4', 'andrew', 'Andrew', 'McDowell', 'fc093c6f48bcdad5ddd7964faff3a41c51b337a4824301b96c4d3b293b590c30', true, NULL, '673d19e0-3435-11e2-80c1-fb0ff2417495', 12, 'u', 'andrew', '2014-03-29 11:41:34.386');
+INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('673cf2d0-3435-11e2-8d79-9bbadfb66eb4', 'andrew', 'Andrew', 'McDowell', 'fc093c6f48bcdad5ddd7964faff3a41c51b337a4824301b96c4d3b293b590c30', true, NULL, '673d19e0-3435-11e2-80c1-fb0ff2417495', 12, 'u', 'andrew', '2020-03-29 11:41:34.386');
+INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('6740754a-3435-11e2-b9f0-f3115a7a6e2e', 'toelau', 'Safuta Toelau', 'Iulio', '41e690f6014670aadec801ffeaaa7bb1a79dd50bc0621d142b4ed400593485db', true, NULL, '67409c5a-3435-11e2-83cf-7bc3c6b322ce', 17, 'u', 'toelau', '2015-01-22 10:04:50.905');
+INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('6b22b21b-1d97-4513-82fa-81d4e678fff3', 'sevao', 'Sevao', 'Steven Ross', 'edbb83f1ab0fcb7e8c5489178cd661a302710b48c3e00c5c64c00f1429d05718', true, NULL, 'e78d1b97-35da-4990-948f-b221a5945b21', 20, 'u', 'sevao', '2015-05-05 08:54:53.009');
+INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('32442559-2AC7-4618-8879-9238AC078626', 'niko', 'Falaniko', 'Afaese', '66d55cac859b5a0a2d97d3baefd2cc011614f0a24c044cd3f6c826e1694583d9', true, NULL, 'd7b3e2a6-3432-11e2-8037-1bad703e2cee', 13, 'u', 'niko', '2015-02-27 13:12:49.505');
+INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('F4D22792-9842-413C-ACFF-B697F10E60F9', 'tavita', 'Tavita', 'Lesatele', 'a8af34ff774394d5ecf28c45442c7b9fff1dd094f63c77eb5d49753df2692441', true, NULL, 'd7b59056-3432-11e2-882b-bf48245abdb9', 19, 'u', 'tavita', '2015-02-27 13:17:02.805');
+INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('673ddd30-3435-11e2-a7a6-4f308915f2b6', 'tufi', 'Tufi', 'Auelua', '5784e88c3cf5a1e8e752a37c150d55548bdc6e90fbdec597d52370042084abd0', true, NULL, '673ddd30-3435-11e2-8d39-47ed22c6ab2e', 14, 'u', 'tufi', '2015-03-09 11:08:10.18');
+INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('9E56EA06-3EAB-49A5-89E6-AB71F5C199AB', 'tua', 'Tuaena', 'Faasalaina', '867f734eb58aba95cd3b73650f21bd2637e51c854c561b934cf774a721666001', true, NULL, 'd7b5b766-3432-11e2-b14d-7f67e4f6e7f7', 14, 'u', 'tua', '2015-04-13 08:40:19.818');
+INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('F8556B65-84E7-490F-B86F-73638B5B6230', 'pati', 'Pati', 'Paepae', '3f94158370f0a012f1e7479209ec0f38a231c428b1ed4cd670a8fd66f1d9f69d', true, NULL, 'd7b457d6-3432-11e2-aaca-f374f6a28bd1', 13, 'u', 'pati', '2015-03-24 10:05:11.663');
+INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('1d3e9151-5992-4970-8d0d-172370029afb', 'pau', 'Muausa Pau', 'Ioane', 'be6d567e6ce1b8220e2ef199852ddc3c1f259147ee1e9973b4781ca0ffc2d119', true, '		', 'fd18479e-fcbd-463e-b848-c69f4f52ec2c', 11, 'u', 'sam', '2015-04-22 14:04:09.795');
+INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('E4E6554E-C5B7-4C0B-A98E-8FBE82D3BD01', 'peta', 'Elisapeta', 'Leato', '0448ae6041fe0def5df2db7f30cc0cb4961592d57efd728601e261ec8a7394ef', true, NULL, 'd7b2d12c-3432-11e2-9855-eb5ecbdb01b3', 14, 'u', 'peta', '2015-02-06 13:58:17.081');
+INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('F1ECE0D4-773F-4598-858B-6F8A878E30AF', 'pele', 'Pele', 'Fuatai', 'e44a87bed53d11f094888aa52b1bc839548457b45c5afd07a8ea1a5ac0856782', true, NULL, 'd7b47ee6-3432-11e2-ae4b-e741a8fc4b2d', 16, 'u', 'sam', '2015-05-06 10:55:26.638');
+INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('9f88cb8a-ff49-4dc5-a7a5-a1be0e8bc908', 'sam', 'sam', 'paniani', 'f6499315b02b122c8dd3480fcdfa954770eb6da803200d553e2f102fe0c3fa00', true, NULL, '67eba0f2-7977-49c7-95e0-684c56a4b2e8', 12, 'u', 'sam', '2015-05-06 10:56:07.012');
+INSERT INTO appuser (id, username, first_name, last_name, passwd, active, description, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('ff0c8809-a4ca-46ae-aa22-6be3f7d4c2c9', 'lydia', 'Lydia', 'Ah-Kuoi', '32316cf00738dee5265c581bfad746ed443755fc4193a1d871916d07fd2777ec', true, NULL, 'f8d89dc2-53ba-4109-b59b-074bd37f2afc', 9, 'u', 'lydia', '2015-04-27 12:35:14.448');
 
 
 ALTER TABLE appuser ENABLE TRIGGER ALL;
 
 --
+-- TOC entry 3972 (class 0 OID 56649)
+-- Dependencies: 332
 -- Data for Name: appuser_appgroup; Type: TABLE DATA; Schema: system; Owner: postgres
 --
 
@@ -352,6 +487,8 @@ INSERT INTO appuser_appgroup (appuser_id, appgroup_id, rowidentifier, rowversion
 INSERT INTO appuser_appgroup (appuser_id, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('04b8f5db-32eb-4251-9bea-51dddc09e8dc', '70', '63298050-b530-11e3-8df4-af5579e1b932', 1, 'i', 'db:postgres', '2014-03-27 11:48:37.391');
 INSERT INTO appuser_appgroup (appuser_id, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('6740272a-3435-11e2-9c29-2f60b79da144', '20', '63298050-b530-11e3-928c-9b002b780df1', 1, 'i', 'db:postgres', '2014-03-27 11:48:37.391');
 INSERT INTO appuser_appgroup (appuser_id, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('673cf2d0-3435-11e2-8d79-9bbadfb66eb4', '10', '63298050-b530-11e3-ba71-8fe85f1416a4', 1, 'i', 'db:postgres', '2014-03-27 11:48:37.391');
+INSERT INTO appuser_appgroup (appuser_id, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('a6f6a72e-1d19-43d0-a87b-421915067cd3', '70', 'ac4869de-ca68-11e3-ab17-8792280a8c99', 1, 'i', 'db:postgres', '2014-04-23 10:54:26.63');
+INSERT INTO appuser_appgroup (appuser_id, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('46f8e336-e993-40ab-a7a1-a3e674abf741', '30', 'e6932554-a4db-11e4-859c-3f349afa8823', 1, 'i', 'db:postgres', '2015-01-26 11:48:30.006');
 INSERT INTO appuser_appgroup (appuser_id, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('673cf2d0-3435-11e2-8d79-9bbadfb66eb4', '40', 'f2304f2a-b6cc-11e3-b69c-431a0878eded', 1, 'i', 'db:postgres', '2014-03-29 12:01:50.406');
 INSERT INTO appuser_appgroup (appuser_id, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('673cf2d0-3435-11e2-8d79-9bbadfb66eb4', '50', '0a09b334-b6cd-11e3-84db-63f3570a2c11', 1, 'i', 'db:postgres', '2014-03-29 12:02:30.418');
 INSERT INTO appuser_appgroup (appuser_id, appgroup_id, rowidentifier, rowversion, change_action, change_user, change_time) VALUES ('673cf2d0-3435-11e2-8d79-9bbadfb66eb4', '60', '0cc5a920-b6cd-11e3-b4f3-df4cad983fce', 1, 'i', 'db:postgres', '2014-03-29 12:02:35.006');
@@ -361,15 +498,7 @@ INSERT INTO appuser_appgroup (appuser_id, appgroup_id, rowidentifier, rowversion
 
 ALTER TABLE appuser_appgroup ENABLE TRIGGER ALL;
 
---
--- Data for Name: appuser_setting; Type: TABLE DATA; Schema: system; Owner: postgres
---
-
-ALTER TABLE appuser_setting DISABLE TRIGGER ALL;
-
-
-
-ALTER TABLE appuser_setting ENABLE TRIGGER ALL;
+-- Completed on 2015-05-12 19:20:27
 
 --
 -- PostgreSQL database dump complete

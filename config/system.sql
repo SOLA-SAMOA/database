@@ -93,12 +93,6 @@ INSERT INTO query (name, sql, description) VALUES ('map_search.cadastre_object_b
  ORDER BY lpad(regexp_replace(name_firstpart, ''\\D*'', '''', ''g''), 5, ''0'') || name_firstpart || name_lastpart
  LIMIT 30', NULL);
 INSERT INTO query (name, sql, description) VALUES ('SpatialResult.getParcelNodes', 'select distinct st_astext(geom) as id, '''' as label, st_asewkb(geom) as the_geom from (select (ST_DumpPoints(geom_polygon)).* from cadastre.cadastre_object co  where type_code= ''parcel'' and status_code= ''current''  and ST_Intersects(co.geom_polygon, ST_SetSRID(ST_MakeBox3D(ST_Point(#{minx}, #{miny}),ST_Point(#{maxx}, #{maxy})), #{srid}))) tmp_table ', NULL);
-INSERT INTO query (name, sql, description) VALUES ('map_search.court_grant', 'SELECT MIN(su.id) as id, su.label, st_asewkb(ST_Union(su.reference_point)) as the_geom 
-  FROM cadastre.spatial_unit su, cadastre.level l 
-  WHERE su.level_id = l.id and l."name" = ''Court Grants''  
-  AND compare_strings(#{search_string}, su.label)
-  AND su.reference_point IS NOT NULL
-  GROUP BY su.label', NULL);
 INSERT INTO query (name, sql, description) VALUES ('dynamic.informationtool.get_parcel_pending', 'SELECT co.id, 
 			cadastre.formatParcelNr(co.name_firstpart, co.name_lastpart) as parcel_nr,
 			cadastre.formatAreaMetric(sva.size) || '' '' || cadastre.formatAreaImperial(sva.size) AS official_area,
@@ -150,6 +144,12 @@ INSERT INTO query (name, sql, description) VALUES ('map_search.village', 'SELECT
   WHERE su.level_id = l.id and l."name" = ''Villages''  
   AND compare_strings(#{search_string}, su.label)
   AND su.reference_point IS NOT NULL', NULL);
+INSERT INTO query (name, sql, description) VALUES ('map_search.court_grant', 'SELECT MIN(su.id) as id, su.label, st_asewkb(ST_Union(su.reference_point)) as the_geom 
+  FROM cadastre.spatial_unit su, cadastre.level l 
+  WHERE su.level_id = l.id and l."name" = ''Court Grants''  
+  AND compare_strings(#{search_string}, su.label)
+  AND su.reference_point IS NOT NULL
+  GROUP BY su.label', NULL);
 INSERT INTO query (name, sql, description) VALUES ('map_search.cadastre_object_by_baunit_owner', 'SELECT DISTINCT co.id,  
        coalesce(p.name, '''') || '' '' || coalesce(p.last_name, '''') || '' > '' || cadastre.formatParcelNr(co.name_firstpart, co.name_lastpart) as label,  
        st_asewkb(co.geom_polygon) as the_geom 
@@ -266,6 +266,7 @@ ALTER TABLE config_map_layer ENABLE TRIGGER ALL;
 --
 
 ALTER TABLE map_search_option DISABLE TRIGGER ALL;
+
 
 INSERT INTO map_search_option (code, title, query_name, active, min_search_str_len, zoom_in_buffer, description) VALUES ('BAUNIT', 'Property Number::::Meatotino Numera', 'map_search.cadastre_object_by_baunit', true, 3, 50.00, NULL);
 INSERT INTO map_search_option (code, title, query_name, active, min_search_str_len, zoom_in_buffer, description) VALUES ('NUMBER', 'Parcel Number::::Poloka Numera', 'map_search.cadastre_object_by_number', true, 3, 50.00, NULL);
