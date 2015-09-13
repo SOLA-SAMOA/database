@@ -519,6 +519,7 @@ SET search_path = source, pg_catalog;
 
 ALTER TABLE administrative_source_type DISABLE TRIGGER ALL;
 
+
 INSERT INTO administrative_source_type (code, display_value, status, description, is_for_registration) VALUES ('agreement', 'Agreement::::Autasiga', 'c', NULL, false);
 INSERT INTO administrative_source_type (code, display_value, status, description, is_for_registration) VALUES ('application', 'Request Form::::SAMOAN', 'c', NULL, false);
 INSERT INTO administrative_source_type (code, display_value, status, description, is_for_registration) VALUES ('caveat', 'Caveat::::SAMOAN', 'c', NULL, false);
@@ -565,6 +566,9 @@ INSERT INTO administrative_source_type (code, display_value, status, description
 INSERT INTO administrative_source_type (code, display_value, status, description, is_for_registration) VALUES ('varyMortgage', 'Variation of Mortgage', 'c', 'Variation of Mortgage application form', false);
 INSERT INTO administrative_source_type (code, display_value, status, description, is_for_registration) VALUES ('varyLease', 'Variation of Lease', 'c', 'Variation of Lease application form', false);
 INSERT INTO administrative_source_type (code, display_value, status, description, is_for_registration) VALUES ('removeCaveat', 'Removal of Caveat', 'c', 'Removal of Caveat application form', false);
+INSERT INTO administrative_source_type (code, display_value, status, description, is_for_registration) VALUES ('conveyance', 'Conveyance', 'c', 'Deed of conveyance', false);
+
+
 
 
 ALTER TABLE administrative_source_type ENABLE TRIGGER ALL;
