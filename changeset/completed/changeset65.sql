@@ -44,7 +44,7 @@ AND   name_firstpart IN ('45801');
 INSERT INTO administrative.ba_unit_contains_spatial_unit 
  (ba_unit_id, spatial_unit_id, change_user)
 SELECT ba.id, co.id, 'andrew'
-FROM adminisrative.ba_unit ba,
+FROM administrative.ba_unit ba,
      cadastre.cadastre_object co
 WHERE ba.name_firstpart = '4580'
 AND   ba.name_lastpart = '5894'
