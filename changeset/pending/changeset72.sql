@@ -16,8 +16,10 @@ FROM administrative.ba_unit ba,
 WHERE ba.name_firstpart = '3380'
 AND   ba.name_lastpart = '8266'
 AND   co.name_firstpart = ba.name_firstpart
-AND   co.name_lastpart = ba.name_lastpart;
-
+AND   co.name_lastpart = ba.name_lastpart
+AND NOT EXISTS (SELECT ba_unit_id FROM administrative.ba_unit_contains_spatial_unit bas
+                WHERE  ba_unit_id = ba.id
+                AND     spatial_unit_id = co.id);	
 
 
 
@@ -70,4 +72,7 @@ FROM administrative.ba_unit ba,
 WHERE ba.name_firstpart = '1024'
 AND   ba.name_lastpart = '6070'
 AND   co.name_firstpart = ba.name_firstpart
-AND   co.name_lastpart = ba.name_lastpart;	
+AND   co.name_lastpart = ba.name_lastpart
+AND NOT EXISTS (SELECT ba_unit_id FROM administrative.ba_unit_contains_spatial_unit bas
+                WHERE ba_unit_id = ba.id
+                AND   spatial_unit_id = co.id);	
