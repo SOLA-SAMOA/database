@@ -39,7 +39,7 @@ INSERT INTO system.query (name, sql, description)
 VALUES ('SpatialResult.getGeodeticMarks', 'select su.id, su.label,  st_asewkb(su.reference_point) as the_geom from cadastre.spatial_unit su, cadastre.level l where su.level_id = l.id and l."name" = ''Geodetic Marks'' and ST_Intersects(su.reference_point, ST_SetSRID(ST_MakeBox3D(ST_Point(#{minx}, #{miny}),ST_Point(#{maxx}, #{maxy})), #{srid}))', NULL); 
 
 INSERT INTO system.query (name, sql, description) 
-VALUES ('dynamic.informationtool.get_geodetic_marks', 'select su.id, su.label, st_y(su.reference_point) AS northing, st_x(su.reference_point) AS easting, su.extension_val AS spheroidal, st_asewkb(su.reference_point) as the_geom from cadastre.spatial_unit su, cadastre.level l where su.level_id = l.id and l."name" = ''Geodetic Marks''  and ST_Intersects(su.reference_point, ST_SetSRID(ST_GeomFromWKB(#{wkb_geom}), #{srid}))', NULL);
+VALUES ('dynamic.informationtool.get_geodetic_marks', 'select su.id, su.label, ROUND(st_y(su.reference_point)::NUMERIC, 3) AS northing, ROUND(st_x(su.reference_point)::NUMERIC, 3) AS easting, su.extension_val AS spheroidal, st_asewkb(su.reference_point) as the_geom from cadastre.spatial_unit su, cadastre.level l where su.level_id = l.id and l."name" = ''Geodetic Marks''  and ST_Intersects(su.reference_point, ST_SetSRID(ST_GeomFromWKB(#{wkb_geom}), #{srid}))', NULL);
 
 INSERT INTO system.query (name, sql, description) 
 VALUES ('map_search.geodetic_mark', 'SELECT su.id, su.label, st_asewkb(su.reference_point) as the_geom FROM cadastre.spatial_unit su, cadastre.level l WHERE su.level_id = l.id and l."name" = ''Geodetic Marks'' AND compare_strings(#{search_string}, su.label) AND su.reference_point IS NOT NULL', NULL);
@@ -129,7 +129,7 @@ INSERT INTO system.query (name, sql, description)
 VALUES ('SpatialResult.getTraverseMarks', 'select su.id, su.label,  st_asewkb(su.reference_point) as the_geom from cadastre.spatial_unit su, cadastre.level l where su.level_id = l.id and l."name" = ''Traverse Marks'' and ST_Intersects(su.reference_point, ST_SetSRID(ST_MakeBox3D(ST_Point(#{minx}, #{miny}),ST_Point(#{maxx}, #{maxy})), #{srid}))', NULL); 
 
 INSERT INTO system.query (name, sql, description) 
-VALUES ('dynamic.informationtool.get_traverse_marks', 'select su.id, su.label, st_y(su.reference_point) AS northing, st_x(su.reference_point) AS easting, st_asewkb(su.reference_point) as the_geom from cadastre.spatial_unit su, cadastre.level l where su.level_id = l.id and l."name" = ''Traverse Marks''  and ST_Intersects(su.reference_point, ST_SetSRID(ST_GeomFromWKB(#{wkb_geom}), #{srid}))', NULL);
+VALUES ('dynamic.informationtool.get_traverse_marks', 'select su.id, su.label, ROUND(st_y(su.reference_point)::NUMERIC, 3) AS northing, ROUND(st_x(su.reference_point)::NUMERIC, 3) AS easting, st_asewkb(su.reference_point) as the_geom from cadastre.spatial_unit su, cadastre.level l where su.level_id = l.id and l."name" = ''Traverse Marks''  and ST_Intersects(su.reference_point, ST_SetSRID(ST_GeomFromWKB(#{wkb_geom}), #{srid}))', NULL);
 
 INSERT INTO system.query_field (query_name, index_in_query, name, display_value) VALUES ('dynamic.informationtool.get_traverse_marks', 0, 'id', null); 
 INSERT INTO system.query_field (query_name, index_in_query, name, display_value) VALUES ('dynamic.informationtool.get_traverse_marks', 1, 'label', 'Mark Number::::Mark Number'); 
