@@ -168,3 +168,103 @@ INSERT INTO system.config_map_layer(
 /*
 INSERT INTO cadastre.spatial_unit (id, change_user, label, level_id, extension_val, geom) SELECT uuid_generate_v1(), 'andrew', 'Example', (SELECT l.id FROM cadastre.level l WHERE l.name = 'District Boundary'), null, su.geom FROM cadastre.spatial_unit su WHERE su.label = 'VUI ROAD'; 
 */
+
+
+
+-- ****  Public Counter DB Changes **** --
+
+UPDATE system.appgroup SET name = 'Staff Public Counter'
+WHERE name = 'Public Counter'
+AND NOT EXISTS (SELECT 1 FROM system.appgroup WHERE name = 'Staff Public Counter');
+
+INSERT INTO system.appgroup (id, name, description)
+SELECT uuid_generate_v1(), 'Public Counter', 'Allows public users to view the map, search for survey documents and print the map and documents'
+WHERE NOT EXISTS (SELECT 1 FROM system.appgroup WHERE name = 'Public Counter');
+
+INSERT INTO system.approle (code, display_value, description, status)
+SELECT 'PublicOnly', 'Public Only', 'Only allow the user to access public documentation and information such as public documents (e.g. survey plans) and map information', 'c'
+WHERE  NOT EXISTS (SELECT code FROM system.approle WHERE code = 'PublicOnly');  
+
+INSERT INTO system.approle_appgroup (approle_code, appgroup_id) 
+(SELECT r.code, g.id FROM system.appgroup g, system.approle  r 
+ WHERE g."name" = 'Public Counter'
+ AND   r.code IN ('ViewMap', 'PrintMap', 'SourceSearch', 'SourcePrint', 'ChangePassword', 'ManageUserPassword', 'ViewSource', 
+   'MeasureTool', 'PublicOnly' )
+ AND   NOT EXISTS (SELECT approle_code FROM system.approle_appgroup 
+				   WHERE r.code = approle_code AND appgroup_id = g.id));
+				   
+/*
+INSERT INTO system.appuser(
+	id, username, first_name, last_name, passwd, active, change_user)
+	VALUES (uuid_generate_v1(), 'public1', 'Public', 'One', 'fc093c6f48bcdad5ddd7964faff3a41c51b337a4824301b96c4d3b293b590c30', true, 'andrew');
+
+INSERT INTO system.appuser_appgroup (appuser_id, appgroup_id) 
+(SELECT u.id, g.id FROM system.appgroup g, system.appuser u 
+ WHERE g."name" = 'Public Counter'
+ AND   u.username = 'public1'
+ AND   NOT EXISTS (SELECT appgroup_id FROM system.appuser_appgroup ag
+				   WHERE ag.appuser_id = u.id AND ag.appgroup_id = g.id));	
+	
+*/
+
+ALTER TABLE source.administrative_source_type ADD COLUMN IF NOT EXISTS public_access CHARACTER VARYING(50); 
+
+UPDATE source.administrative_source_type SET public_access = 'DENY'; 	
+UPDATE source.administrative_source_type SET public_access = 'ALLOW' 
+WHERE code in ('cadastralSurvey', 'circuitPlan', 'coastalPlan', 'flurPlan', 'landClaimPlan', 'recordMaps', 'schemePlan', 'titlePlan', 'unitEntitlements', 'unitPlan', 'traverse', 'surveyDataFile');	
+	
+
+CREATE OR REPLACE FUNCTION source.getpublicaccess(
+	source_id character varying)
+    RETURNS character varying
+	LANGUAGE 'plpgsql'
+AS $BODY$
+  BEGIN
+    RETURN (SELECT t.public_access
+	         FROM source.administrative_source_type t,
+			      source.source s
+		     WHERE s.id = source_id
+			 AND   t.code = s.type_code);   
+  END; $BODY$;
+
+COMMENT ON FUNCTION source.getpublicaccess(character varying)
+    IS 'Returns the public access status for a given source record'; 
+	
+	
+DROP TABLE IF EXISTS system.public_access; 
+	
+CREATE TABLE system.public_access
+(
+    id character varying(40) COLLATE pg_catalog."default" NOT NULL,
+    login_time timestamp without time zone NOT NULL DEFAULT now(),   
+	receipt_number character varying(100) NOT NULL,
+    comment character varying(500) COLLATE pg_catalog."default",
+	public_user character varying(40) COLLATE pg_catalog."default" NOT NULL,
+    CONSTRAINT public_access_pkey PRIMARY KEY (id)
+);
+
+ALTER TABLE system.public_access
+    OWNER to postgres;
+COMMENT ON TABLE system.public_access
+    IS 'Tracks when public access users login to SOLA including the receipt_number. ';
+
+COMMENT ON COLUMN system.public_access.id
+    IS 'Identifier for the public_access table ';
+
+COMMENT ON COLUMN system.public_access.login_time
+    IS 'Public user login time. ';
+
+COMMENT ON COLUMN system.public_access.receipt_number
+    IS 'The receipt_number the user has for this session';
+
+COMMENT ON COLUMN system.public_access.comment
+    IS 'Comment from user. Not used in initial version of functionality. ';
+
+COMMENT ON COLUMN system.public_access.public_user
+    IS 'The public user that logged into the application. ';
+	
+	
+	
+	
+	
+  				   
