@@ -211,7 +211,7 @@ ALTER TABLE source.administrative_source_type ADD COLUMN IF NOT EXISTS public_ac
 
 UPDATE source.administrative_source_type SET public_access = 'DENY'; 	
 UPDATE source.administrative_source_type SET public_access = 'ALLOW' 
-WHERE code in ('cadastralSurvey', 'circuitPlan', 'coastalPlan', 'flurPlan', 'landClaimPlan', 'recordMaps', 'schemePlan', 'titlePlan', 'unitEntitlements', 'unitPlan', 'traverse', 'surveyDataFile');	
+WHERE code in ('cadastralSurvey', 'circuitPlan', 'coastalPlan', 'flurPlan', 'recordMaps', 'schemePlan', 'titlePlan', 'unitEntitlements', 'unitPlan', 'traverse', 'surveyDataFile');	
 	
 
 CREATE OR REPLACE FUNCTION source.getpublicaccess(
@@ -230,41 +230,152 @@ AS $BODY$
 COMMENT ON FUNCTION source.getpublicaccess(character varying)
     IS 'Returns the public access status for a given source record'; 
 	
+
 	
-DROP TABLE IF EXISTS system.public_access; 
-	
-CREATE TABLE system.public_access
+DROP TABLE IF EXISTS system.public_user_activity;
+DROP TABLE IF EXISTS system.public_user_activity_type;  
+
+CREATE TABLE system.public_user_activity_type
 (
-    id character varying(40) COLLATE pg_catalog."default" NOT NULL,
-    login_time timestamp without time zone NOT NULL DEFAULT now(),   
-	receipt_number character varying(100) NOT NULL,
-    comment character varying(500) COLLATE pg_catalog."default",
-	public_user character varying(40) COLLATE pg_catalog."default" NOT NULL,
-    CONSTRAINT public_access_pkey PRIMARY KEY (id)
+    code character varying(20) NOT NULL,
+    display_value character varying(250) NOT NULL,
+    description character varying(555),
+    status character(1) NOT NULL,
+    CONSTRAINT public_user_activity_type_pkey PRIMARY KEY (code),
+    CONSTRAINT public_user_activity_type_display_value_unique UNIQUE (display_value)
+
 );
 
-ALTER TABLE system.public_access
-    OWNER to postgres;
-COMMENT ON TABLE system.public_access
-    IS 'Tracks when public access users login to SOLA including the receipt_number. ';
+COMMENT ON TABLE system.public_user_activity_type
+    IS 'The types of activity a public user may undertake when logged into SOLA.';
+	
+INSERT INTO system.public_user_activity_type (code, display_value, status) VALUES ('login', 'Login', 'c');
+INSERT INTO system.public_user_activity_type (code, display_value, status) VALUES ('docPrint', 'Print Document', 'c');
+INSERT INTO system.public_user_activity_type (code, display_value, status) VALUES ('docView', 'View Document', 'c');
+INSERT INTO system.public_user_activity_type (code, display_value, status) VALUES ('mapPrint', 'Map Print', 'c');
+	
+CREATE TABLE system.public_user_activity
+(
+    id character varying(40) NOT NULL,
+    activity_time timestamp without time zone NOT NULL DEFAULT now(),  
+    activity_type character varying(20) NOT NULL,	
+	receipt_number character varying(100),
+    comment character varying(500),
+	public_user character varying(40) NOT NULL,
+    CONSTRAINT public_access_pkey PRIMARY KEY (id),
+	CONSTRAINT public_user_activity_activity_type FOREIGN KEY (activity_type)
+        REFERENCES system.public_user_activity_type (code) MATCH SIMPLE
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT
+);
 
-COMMENT ON COLUMN system.public_access.id
-    IS 'Identifier for the public_access table ';
 
-COMMENT ON COLUMN system.public_access.login_time
-    IS 'Public user login time. ';
+COMMENT ON TABLE system.public_user_activity
+    IS 'Tracks specific activities performed by a public user. ';
 
-COMMENT ON COLUMN system.public_access.receipt_number
+COMMENT ON COLUMN system.public_user_activity.id
+    IS 'Identifier for the public_user_activity table ';
+
+COMMENT ON COLUMN system.public_user_activity.activity_time
+    IS 'The time the activity occurred. ';
+	
+COMMENT ON COLUMN system.public_user_activity.activity_type
+    IS 'The type of activity performed by the public user. e.g. Login, Map Print, Document Print. ';
+
+COMMENT ON COLUMN system.public_user_activity.receipt_number
     IS 'The receipt_number the user has for this session';
 
-COMMENT ON COLUMN system.public_access.comment
+COMMENT ON COLUMN system.public_user_activity.comment
     IS 'Comment from user. Not used in initial version of functionality. ';
 
-COMMENT ON COLUMN system.public_access.public_user
-    IS 'The public user that logged into the application. ';
+COMMENT ON COLUMN system.public_user_activity.public_user
+    IS 'The public user that triggered the activity. ';
 	
+CREATE INDEX public_user_activity_activity_type_ind
+    ON system.public_user_activity USING btree
+    (activity_type);
 	
+CREATE INDEX public_user_activity_public_user_ind
+    ON system.public_user_activity USING btree
+    (public_user);
 	
+CREATE INDEX public_user_activity_activity_time_ind
+    ON system.public_user_activity USING btree
+    (activity_time);
 	
+
+
+
+CREATE OR REPLACE FUNCTION system.public_user_activity_daily_summary(
+	from_date date,
+	to_date date,
+	the_user VARCHAR (40))
+    RETURNS TABLE(pubilc_user VARCHAR (40), pub_user_name VARCHAR(255), activity_day DATE, receipt_num VARCHAR(100), login_num INTEGER, map_print_num INTEGER, map_print_comments VARCHAR(255), doc_view_num INTEGER, doc_view_comments VARCHAR(255), doc_print_num INTEGER, doc_print_comments VARCHAR(255)) 
+	LANGUAGE 'plpgsql'
+	
+AS $BODY$
+DECLARE 
+   tmp_date DATE; 
+BEGIN
+
+   -- If no from date provided, set it to 5 days before the to_date, 
+   -- or 5 days before today if to_date is null
+   IF from_date IS NULL THEN
+      IF to_date IS NOT NULL THEN
+        from_date := to_date - 5; 
+	  ELSE
+		from_date := current_date - 5;
+	  END IF; 
+   END IF; 
+   
+   -- If to_date is null, set it to today. 
+   IF to_date IS NULL THEN
+      to_date := current_date; 
+   END IF; 
+
+   -- Swap the dates so the to date is after the from date
+   IF to_date < from_date THEN 
+      tmp_date := from_date; 
+      from_date := to_date; 
+      to_date := tmp_date; 
+   END IF; 
+   
+   -- Go through to the start of the next day. 
+   to_date := to_date + 1; 
+
+   RETURN query 
+   
+    -- Create a temporary subset of records for subsequent processing based on the function parameters.
+	-- Truncate the activity time so that data is summarised per 24hr period for each user and receipt_num combination
+    WITH activity_subset AS 
+         (SELECT pua.public_user, date_trunc('day', pua.activity_time) AS activity_day, pua.activity_type, pua.receipt_number AS receipt_num, 
+		         pua.comment, COALESCE(usr.first_name || ' ', '') || COALESCE(usr.last_name, '') AS pub_user_name
+          FROM system.public_user_activity pua, 
+		       system.appuser usr
+          WHERE pua.activity_time BETWEEN from_date AND to_date 
+		  AND COALESCE(the_user, pua.public_user) = pua.public_user
+		  AND usr.username = pua.public_user)
+   -- MAIN QUERY                         
+   SELECT sub.public_user::VARCHAR(40),
+          sub.pub_user_name::VARCHAR(255),   
+          sub.activity_day::DATE, 
+		  sub.receipt_num::VARCHAR(100), 
+		  SUM(CASE sub.activity_type WHEN 'login' THEN 1 ELSE 0 END)::INTEGER AS login_num,
+		  SUM(CASE sub.activity_type WHEN 'mapPrint' THEN 1 ELSE 0 END)::INTEGER AS map_print_num,
+		  string_agg((CASE sub.activity_type WHEN 'mapPrint' THEN sub.comment ELSE NULL END)::VARCHAR(100), ', ')::VARCHAR(255) AS map_print_comments,
+		  SUM(CASE sub.activity_type WHEN 'docView' THEN 1 ELSE 0 END)::INTEGER AS doc_view_num,
+		  string_agg((CASE sub.activity_type WHEN 'docView' THEN sub.comment ELSE NULL END)::VARCHAR(100), ', ')::VARCHAR(255) AS doc_view_comments,
+		  SUM(CASE sub.activity_type WHEN 'docPrint' THEN 1 ELSE 0 END)::INTEGER AS doc_print_num,
+		  string_agg((CASE sub.activity_type WHEN 'docPrint' THEN sub.comment ELSE NULL END)::VARCHAR(100), ', ')::VARCHAR(255) AS doc_print_comments
+    FROM  activity_subset sub
+	GROUP BY sub.public_user, sub.pub_user_name, sub.activity_day, sub.receipt_num
+	ORDER BY sub.activity_day ASC, sub.public_user, sub.receipt_num; 
+ 
+	
+   END; $BODY$;
+
+COMMENT ON FUNCTION system.public_user_activity_daily_summary(DATE, DATE, VARCHAR(40))
+    IS 'Returns a daily summary of public user activities. The default settings will report all user activity over the last 5 days. Used by the Public User Activity Report.';
+
 	
   				   
