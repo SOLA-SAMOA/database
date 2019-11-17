@@ -435,4 +435,18 @@ COMMENT ON FUNCTION administrative.show_cot_report(character varying, boolean, c
     IS 'Checks the ba_unit to determine if the Certificate of Title report should be displayed or not';
 	
 	
-  				   
+  
+
+
+-- Make Deed Current
+
+INSERT INTO system.approle (code, display_value, description, status)
+SELECT 'MakePropCurrent', 'Make Property Current', 'Allows a team leader to update the status of a deed or property from Historic to Current', 'c'
+WHERE  NOT EXISTS (SELECT code FROM system.approle WHERE code = 'MakePropCurrent');  
+
+INSERT INTO system.approle_appgroup (approle_code, appgroup_id) 
+(SELECT r.code, g.id FROM system.appgroup g, system.approle  r 
+ WHERE g."name" IN ('Team Leader') 
+ AND   r.code IN ('MakePropCurrent')
+ AND   NOT EXISTS (SELECT approle_code FROM system.approle_appgroup 
+				   WHERE r.code = approle_code AND appgroup_id = g.id));  
