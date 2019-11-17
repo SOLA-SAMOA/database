@@ -178,8 +178,8 @@ WHERE name = 'Public Counter'
 AND NOT EXISTS (SELECT 1 FROM system.appgroup WHERE name = 'Staff Public Counter');
 
 INSERT INTO system.appgroup (id, name, description)
-SELECT uuid_generate_v1(), 'Public Counter', 'Allows public users to view the map, search for survey documents and print the map and documents'
-WHERE NOT EXISTS (SELECT 1 FROM system.appgroup WHERE name = 'Public Counter');
+SELECT uuid_generate_v1(), 'Public Users', 'Allows public users to view the map, search for survey documents and print the map and documents'
+WHERE NOT EXISTS (SELECT 1 FROM system.appgroup WHERE name = 'Public Users');
 
 INSERT INTO system.approle (code, display_value, description, status)
 SELECT 'PublicOnly', 'Public Only', 'Only allow the user to access public documentation and information such as public documents (e.g. survey plans) and map information', 'c'
@@ -187,7 +187,7 @@ WHERE  NOT EXISTS (SELECT code FROM system.approle WHERE code = 'PublicOnly');
 
 INSERT INTO system.approle_appgroup (approle_code, appgroup_id) 
 (SELECT r.code, g.id FROM system.appgroup g, system.approle  r 
- WHERE g."name" = 'Public Counter'
+ WHERE g."name" = 'Public Users'
  AND   r.code IN ('ViewMap', 'PrintMap', 'SourceSearch', 'SourcePrint', 'ChangePassword', 'ManageUserPassword', 'ViewSource', 
    'MeasureTool', 'PublicOnly' )
  AND   NOT EXISTS (SELECT approle_code FROM system.approle_appgroup 
@@ -257,7 +257,7 @@ INSERT INTO system.public_user_activity_type (code, display_value, status) VALUE
 CREATE TABLE system.public_user_activity
 (
     id character varying(40) NOT NULL,
-    activity_time timestamp without time zone NOT NULL DEFAULT now(),  
+    activity_time timestamp with time zone NOT NULL DEFAULT now(),  
     activity_type character varying(20) NOT NULL,	
 	receipt_number character varying(100),
     comment character varying(500),
@@ -304,13 +304,26 @@ CREATE INDEX public_user_activity_activity_time_ind
     (activity_time);
 	
 
+-- Public User Activity Daily Summary Report --
+
+INSERT INTO system.approle (code, display_value, description, status)
+SELECT 'PublicActivityRpt', 'Pubilc Activity Report', 'Allows user to run the Public User Activity Daily Summary Report', 'c'
+WHERE  NOT EXISTS (SELECT code FROM system.approle WHERE code = 'PublicActivityRpt');  
+
+INSERT INTO system.approle_appgroup (approle_code, appgroup_id) 
+(SELECT r.code, g.id FROM system.appgroup g, system.approle  r 
+ WHERE g."name" IN ( 'Staff Public Counter', 'Team Leader') 
+ AND   r.code IN ('PublicActivityRpt')
+ AND   NOT EXISTS (SELECT approle_code FROM system.approle_appgroup 
+				   WHERE r.code = approle_code AND appgroup_id = g.id));
 
 
 CREATE OR REPLACE FUNCTION system.public_user_activity_daily_summary(
 	from_date date,
 	to_date date,
 	the_user VARCHAR (40))
-    RETURNS TABLE(pubilc_user VARCHAR (40), pub_user_name VARCHAR(255), activity_day DATE, receipt_num VARCHAR(100), login_num INTEGER, map_print_num INTEGER, map_print_comments VARCHAR(255), doc_view_num INTEGER, doc_view_comments VARCHAR(255), doc_print_num INTEGER, doc_print_comments VARCHAR(255)) 
+    RETURNS TABLE(public_user VARCHAR (40), pub_user_name VARCHAR(255), activity_day DATE, receipt_num VARCHAR(100), login_num INTEGER, map_print_num INTEGER, map_print_comments VARCHAR(255), doc_view_num INTEGER, doc_view_comments VARCHAR(255), doc_print_num INTEGER, doc_print_comments VARCHAR(255),
+	max_activity_time TIMESTAMP WITH TIME ZONE, min_activity_time TIMESTAMP WITH TIME ZONE) 
 	LANGUAGE 'plpgsql'
 	
 AS $BODY$
@@ -339,17 +352,13 @@ BEGIN
       from_date := to_date; 
       to_date := tmp_date; 
    END IF; 
-   
-   -- Go through to the start of the next day. 
-   to_date := to_date + 1; 
 
    RETURN query 
    
     -- Create a temporary subset of records for subsequent processing based on the function parameters.
 	-- Truncate the activity time so that data is summarised per 24hr period for each user and receipt_num combination
     WITH activity_subset AS 
-         (SELECT pua.public_user, date_trunc('day', pua.activity_time) AS activity_day, pua.activity_type, pua.receipt_number AS receipt_num, 
-		         pua.comment, COALESCE(usr.first_name || ' ', '') || COALESCE(usr.last_name, '') AS pub_user_name
+         (SELECT pua.public_user, date_trunc('day', pua.activity_time at time zone 'Pacific/Apia') AS activity_day, pua.activity_type, pua.receipt_number AS receipt_num, pua.comment, COALESCE(usr.first_name || ' ', '') || COALESCE(usr.last_name, '') AS pub_user_name, pua.activity_time
           FROM system.public_user_activity pua, 
 		       system.appuser usr
           WHERE pua.activity_time BETWEEN from_date AND to_date 
@@ -366,10 +375,12 @@ BEGIN
 		  SUM(CASE sub.activity_type WHEN 'docView' THEN 1 ELSE 0 END)::INTEGER AS doc_view_num,
 		  string_agg((CASE sub.activity_type WHEN 'docView' THEN sub.comment ELSE NULL END)::VARCHAR(100), ', ')::VARCHAR(255) AS doc_view_comments,
 		  SUM(CASE sub.activity_type WHEN 'docPrint' THEN 1 ELSE 0 END)::INTEGER AS doc_print_num,
-		  string_agg((CASE sub.activity_type WHEN 'docPrint' THEN sub.comment ELSE NULL END)::VARCHAR(100), ', ')::VARCHAR(255) AS doc_print_comments
+		  string_agg((CASE sub.activity_type WHEN 'docPrint' THEN sub.comment ELSE NULL END)::VARCHAR(100), ', ')::VARCHAR(255) AS doc_print_comments,
+		  MAX(sub.activity_time)::TIMESTAMP WITH TIME ZONE AS max_activity_time,
+		  MIN(sub.activity_time)::TIMESTAMP WITH TIME ZONE AS min_activity_time
     FROM  activity_subset sub
 	GROUP BY sub.public_user, sub.pub_user_name, sub.activity_day, sub.receipt_num
-	ORDER BY sub.activity_day ASC, sub.public_user, sub.receipt_num; 
+	ORDER BY min_activity_time ASC, sub.public_user, sub.receipt_num; 
  
 	
    END; $BODY$;
@@ -377,5 +388,51 @@ BEGIN
 COMMENT ON FUNCTION system.public_user_activity_daily_summary(DATE, DATE, VARCHAR(40))
     IS 'Returns a daily summary of public user activities. The default settings will report all user activity over the last 5 days. Used by the Public User Activity Report.';
 
+
+
+
+-- ****  CoT Report **** --
+
+CREATE OR REPLACE FUNCTION administrative.show_cot_report(
+	p_ba_unit_id character varying,
+	p_is_production boolean,
+	p_user_name character varying)
+    RETURNS boolean
+    LANGUAGE 'plpgsql'
+
+AS $BODY$
+
+DECLARE 
+   v_cot_date DATE := '02-MAR-2021';
+   v_bypass boolean := FALSE;
+BEGIN
+
+  -- This is the training system, so allow certain users to view the CoT report
+  IF p_user_name = 'andrew' AND NOT p_is_production THEN RETURN TRUE; END IF;
+  
+  -- ALlow a date independent bypass to avoid the CoT from being displayed
+  IF v_bypass THEN RETURN FALSE; END IF;
+  
+  -- Check if there has been dealing registered on the title after the CoT cutover date. 
+  IF EXISTS (SELECT r.id
+             FROM  administrative.rrr r,
+			       transaction.transaction t, 
+				   application.service s
+		     WHERE r.ba_unit_id = p_ba_unit_id
+			 AND   r.registration_date >= v_cot_date
+			 AND   t.id = r.transaction_id
+			 AND   s.id = t.from_service_id
+			 AND   s.request_type_code NOT IN ('registrarCancel', 'registrarCorrection')) THEN RETURN TRUE; END IF; 
+
+  RETURN FALSE;
+END
+$BODY$;
+
+ALTER FUNCTION administrative.show_cot_report(character varying, boolean, character varying)
+    OWNER TO postgres;
+
+COMMENT ON FUNCTION administrative.show_cot_report(character varying, boolean, character varying)
+    IS 'Checks the ba_unit to determine if the Certificate of Title report should be displayed or not';
+	
 	
   				   
