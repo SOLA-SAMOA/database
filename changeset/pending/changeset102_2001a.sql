@@ -5,13 +5,34 @@
 -- Layer for Aerial Photography
 DELETE FROM system.config_map_layer WHERE name = 'samoa_aerial';
 DELETE FROM system.config_map_layer WHERE name = 'samoa_parcels_contrast';
+
+/*INSERT INTO system.config_map_layer(
+	name, title, type_code, active, visible_in_start, item_order, url, wms_layers, wms_version, wms_format)
+	VALUES ('samoa_aerial', 'Samoa Aerial::::Samoa Aerial', 'wms', true, false, 2, 'http://localhost:8085/geoserver/sola/wms', 'sola:Samoa', '1.1.1', 'image/jpeg');*/
+	
 INSERT INTO system.config_map_layer(
 	name, title, type_code, active, visible_in_start, item_order, url, wms_layers, wms_version, wms_format)
-	VALUES ('samoa_aerial', 'Samoa Aerial::::Samoa Aerial', 'wms', true, false, 2, 'http://localhost:8085/geoserver/sola/wms', 'sola:Samoa', '1.1.1', 'image/jpeg');
+	VALUES ('samoa_aerial', 'Samoa Aerial::::Samoa Aerial', 'wms', true, false, 2, 'http://10.20.1.10:8085/geoserver/Samoa_2015_aerial_photos/wms', 'Samoa_2015_aerial_photos:Samoa_2015_aerial_photography_0.2m_per_pixel', '1.1.1', 'image/jpeg');
 	
 INSERT INTO system.config_map_layer(
 	name, title, type_code, active, visible_in_start, item_order, style, pojo_structure, pojo_query_name, pojo_query_name_for_select)
 	VALUES ('samoa_parcels_contrast', 'Parcels Contrast::::Poloka', 'pojo', true, false, 31, 'samoa_parcel_contrast.xml', 'theGeom:Polygon,label:""', 'SpatialResult.getParcels', null);
+	
+	
+INSERT INTO system.appgroup (id, name, description)
+SELECT uuid_generate_v1(), 'View Aerial Photos', 'Allows users to view the Samoa 2015 Aerial Photos as a map layer in SOLA'
+WHERE NOT EXISTS (SELECT 1 FROM system.appgroup WHERE name = 'View Aerial Photos');
+
+INSERT INTO system.approle (code, display_value, description, status)
+SELECT 'ViewAerialPhotos', 'View Aerial Photos', 'Allows users to view the Samoa 2015 Aerial Photos as a map layer in SOLA', 'c'
+WHERE  NOT EXISTS (SELECT code FROM system.approle WHERE code = 'ViewAerialPhotos');  
+
+INSERT INTO system.approle_appgroup (approle_code, appgroup_id) 
+(SELECT r.code, g.id FROM system.appgroup g, system.approle  r 
+ WHERE g."name" = 'View Aerial Photos'
+ AND   r.code IN ('ViewAerialPhotos' )
+ AND   NOT EXISTS (SELECT approle_code FROM system.approle_appgroup 
+				   WHERE r.code = approle_code AND appgroup_id = g.id));	
 
 
 
@@ -197,6 +218,8 @@ INSERT INTO system.approle_appgroup (approle_code, appgroup_id)
 INSERT INTO system.appuser(
 	id, username, first_name, last_name, passwd, active, change_user)
 	VALUES (uuid_generate_v1(), 'public1', 'Public', 'One', 'fc093c6f48bcdad5ddd7964faff3a41c51b337a4824301b96c4d3b293b590c30', true, 'andrew');
+	
+UPDATE system.appuser set passwd = 'fc093c6f48bcdad5ddd7964faff3a41c51b337a4824301b96c4d3b293b590c30' where username = 'public1'; 
 
 INSERT INTO system.appuser_appgroup (appuser_id, appgroup_id) 
 (SELECT u.id, g.id FROM system.appgroup g, system.appuser u 
@@ -404,13 +427,13 @@ AS $BODY$
 
 DECLARE 
    v_cot_date DATE := '02-MAR-2021';
-   v_bypass boolean := FALSE;
+   v_bypass boolean := TRUE; -- The bypass will force the CFC to be produced until such time as the cutover date to CoT's is agreeded. 
 BEGIN
 
   -- This is the training system, so allow certain users to view the CoT report
   IF p_user_name = 'andrew' AND NOT p_is_production THEN RETURN TRUE; END IF;
   
-  -- ALlow a date independent bypass to avoid the CoT from being displayed
+  -- Allow a date independent bypass to avoid the CoT from being displayed
   IF v_bypass THEN RETURN FALSE; END IF;
   
   -- Check if there has been dealing registered on the title after the CoT cutover date. 
@@ -427,9 +450,6 @@ BEGIN
   RETURN FALSE;
 END
 $BODY$;
-
-ALTER FUNCTION administrative.show_cot_report(character varying, boolean, character varying)
-    OWNER TO postgres;
 
 COMMENT ON FUNCTION administrative.show_cot_report(character varying, boolean, character varying)
     IS 'Checks the ba_unit to determine if the Certificate of Title report should be displayed or not';
