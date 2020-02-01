@@ -1,0 +1,13 @@
+# Crontab file used by SOLA for backing up the SOLA Samoa database Backups that are executed
+# 1. Hourly backup of Main tables occuring 5 minutes past the hour between 7am and 8pm
+# 2. Daily backup of Main tables occuring at 7:10pm every night
+# 3. Daily backup of documents table (partial) occuring at 7:15pm every night
+# 4. Daily training backup of Main tables occuring at 7:45pm every night
+# 5. Daily training backup of documents table (partial) occuring at 7:50pm every night
+# 6. Removal of any old backups occuring daily at 8:30pm every day
+5 07-20 * * * docker exec sola-db bash -c '/backup/scripts/backup_sola.sh -t M -f 02-hourly'
+10 19 * * * docker exec sola-db bash -c '/backup/scripts/backup_sola.sh -t M -f 03-daily'
+15 19 * * * docker exec sola-db bash -c '/backup/scripts/backup_sola_docs.sh -t P -f 03-daily'
+45 19 * * * docker exec sola-db bash -c '/backup/scripts/backup_sola.sh -t T -f 04-train'
+50 19 * * * docker exec sola-db bash -c '/backup/scripts/backup_sola_docs.sh -t T -f 04-train'
+30 20 * * * docker exec sola-db bash -c '/backup/scripts/remove_backups.sh'
