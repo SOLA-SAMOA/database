@@ -186,6 +186,8 @@ INSERT INTO system.config_map_layer(
 	name, title, type_code, active, visible_in_start, item_order, style, pojo_structure, pojo_query_name, pojo_query_name_for_select)
 	VALUES ('district_boundary', 'District Boundary::::District Boundary', 'pojo', true, false, 85, 'samoa_district_boundary.xml', 'theGeom:LineString,label:""', 'SpatialResult.getDistrictBoundary', null);
 
+UPDATE system.config_map_layer SET title = 'District Names' WHERE name = 'districts'; 
+
 /*
 INSERT INTO cadastre.spatial_unit (id, change_user, label, level_id, extension_val, geom) SELECT uuid_generate_v1(), 'andrew', 'Example', (SELECT l.id FROM cadastre.level l WHERE l.name = 'District Boundary'), null, su.geom FROM cadastre.spatial_unit su WHERE su.label = 'VUI ROAD'; 
 */
@@ -217,16 +219,23 @@ INSERT INTO system.approle_appgroup (approle_code, appgroup_id)
 /*
 INSERT INTO system.appuser(
 	id, username, first_name, last_name, passwd, active, change_user)
-	VALUES (uuid_generate_v1(), 'public1', 'Public', 'One', 'fc093c6f48bcdad5ddd7964faff3a41c51b337a4824301b96c4d3b293b590c30', true, 'andrew');
+	VALUES (uuid_generate_v1(), 'public_user_demo', 'Public User', 'Demo', 'fc093c6f48bcdad5ddd7964faff3a41c51b337a4824301b96c4d3b293b590c30', true, 'andrew');
 	
-UPDATE system.appuser set passwd = 'fc093c6f48bcdad5ddd7964faff3a41c51b337a4824301b96c4d3b293b590c30' where username = 'public1'; 
+UPDATE system.appuser set passwd = 'fc093c6f48bcdad5ddd7964faff3a41c51b337a4824301b96c4d3b293b590c30' where username = 'public_user_demo'; 
 
 INSERT INTO system.appuser_appgroup (appuser_id, appgroup_id) 
 (SELECT u.id, g.id FROM system.appgroup g, system.appuser u 
- WHERE g."name" = 'Public Counter'
- AND   u.username = 'public1'
+ WHERE g."name" = 'Public Users'
+ AND   u.username = 'public_user_demo'
  AND   NOT EXISTS (SELECT appgroup_id FROM system.appuser_appgroup ag
-				   WHERE ag.appuser_id = u.id AND ag.appgroup_id = g.id));	
+				   WHERE ag.appuser_id = u.id AND ag.appgroup_id = g.id));
+
+INSERT INTO system.appuser_appgroup (appuser_id, appgroup_id) 
+(SELECT u.id, g.id FROM system.appgroup g, system.appuser u 
+ WHERE g."name" = 'View Aerial Photos'
+ AND   u.username = 'public_user_demo'
+ AND   NOT EXISTS (SELECT appgroup_id FROM system.appuser_appgroup ag
+				   WHERE ag.appuser_id = u.id AND ag.appgroup_id = g.id));					   
 	
 */
 
