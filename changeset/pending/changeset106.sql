@@ -14,7 +14,7 @@
 		  AND   l.id = suc.level_id
 		  AND   l.name = ''District Boundary'')
       SELECT COUNT (*) > 0 AS vl FROM cadastre_objs'
-	  WHERE br_id = 'new-cadastre-objects-present'
+	  WHERE br_id = 'new-cadastre-objects-present';
 	  
 	  
 	   UPDATE system.br_definition SET body = 
@@ -28,4 +28,4 @@
 		  AND   l.id = suc.level_id
 		  AND   l.name = ''District Boundary'')
       SELECT SUM(obj_cnt) > 2 AS vl FROM cadastre_objs'
-	  WHERE br_id = 'survey-points-present'
+	  WHERE br_id = 'survey-points-present';
